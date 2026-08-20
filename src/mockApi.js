@@ -23,7 +23,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
       pyInstructions: "Awaiting Fulfillment",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21393!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21393!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -45,7 +46,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
       pyInstructions: "Awaiting Fulfillment",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21392!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21392!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -67,7 +69,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21390!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21390!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -89,7 +92,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21389!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21389!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -111,7 +115,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
       pyInstructions: "Awaiting Fulfillment",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21379!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21379!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -133,7 +138,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21410!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21410!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -155,7 +161,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21391!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21391!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -177,7 +184,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21408!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21408!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -199,7 +207,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21386!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21386!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -221,7 +230,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
       pyInstructions: "Awaiting Fulfillment",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21349!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21349!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -243,7 +253,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
       pyInstructions: "Awaiting Fulfillment",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21350!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21350!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -265,7 +276,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21352!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21352!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -287,7 +299,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21419!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21419!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -309,7 +322,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21416!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21416!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -331,7 +345,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21418!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21418!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -352,7 +367,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21420!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21420!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",
@@ -374,7 +390,8 @@ const mockCaseListResponse = {
       pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
       pyInstructions: "Awaiting Fulfillment",
       pyAssignmentStatus: "Open-ClaimantPackageSent",
-      pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21423!REQUIREMENTSFULFILLMENT",
+      pzInsKey:
+        "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21423!REQUIREMENTSFULFILLMENT",
       pxDeadlineTime: null,
       pxUpdateOperator: null,
       pxApplication: "CLM",

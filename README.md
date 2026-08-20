@@ -79,14 +79,14 @@ npm run lint
 
 The application reads its API configuration from Vite environment variables. Keep credentials in a local `.env` file and never commit secrets.
 
-| Variable | Purpose |
-| --- | --- |
-| `VITE_MOCK_MODE` | Enables the local mock API workflow |
-| `VITE_CLIENT_ID` | OAuth client identifier |
-| `VITE_CLIENT_SECRET` | OAuth client secret |
-| `VITE_TOKEN_URL` | OAuth token endpoint |
-| `VITE_API_BASE` | Primary Case API base URL |
-| `VITE_ASSIGNMENT_API_BASE` | Assignment API base URL |
+| Variable                   | Purpose                             |
+| -------------------------- | ----------------------------------- |
+| `VITE_MOCK_MODE`           | Enables the local mock API workflow |
+| `VITE_CLIENT_ID`           | OAuth client identifier             |
+| `VITE_CLIENT_SECRET`       | OAuth client secret                 |
+| `VITE_TOKEN_URL`           | OAuth token endpoint                |
+| `VITE_API_BASE`            | Primary Case API base URL           |
+| `VITE_ASSIGNMENT_API_BASE` | Assignment API base URL             |
 
 ## Development notes
 

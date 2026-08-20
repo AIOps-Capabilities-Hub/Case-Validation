@@ -141,7 +141,13 @@ function ParticipantCard({ participant }) {
 }
 
 /* ── Case Detail View ─────────────────────────────────────────── */
-function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, onBack }) {
+function CaseDetailView({
+  caseData,
+  referencedUsers = {},
+  onSubmit,
+  submitting,
+  onBack,
+}) {
   const [activeTab, setActiveTab] = useState("overview");
 
   if (!caseData) return null;
@@ -169,7 +175,9 @@ function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, 
 
   // Resolve operator IDs to names from referencedUsers map
   const resolveUser = (id) =>
-    id && referencedUsers[id]?.UserName ? referencedUsers[id].UserName : (id || "—");
+    id && referencedUsers[id]?.UserName
+      ? referencedUsers[id].UserName
+      : id || "—";
 
   const validParticipants = participants.filter(
     (p) => p.fullName || p.firstName,
@@ -227,7 +235,6 @@ function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, 
             </div>
           </div>
         )}
-
 
         {/* Tabs */}
         <div className="card" style={{ padding: 0 }}>
@@ -290,7 +297,9 @@ function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, 
                 </div>
                 <div className="detail-field">
                   <div className="detail-label">Last Updated By</div>
-                  <div className="detail-value">{resolveUser(caseData.lastUpdatedBy)}</div>
+                  <div className="detail-value">
+                    {resolveUser(caseData.lastUpdatedBy)}
+                  </div>
                 </div>
                 <div className="detail-field">
                   <div className="detail-label">Created</div>
@@ -517,9 +526,7 @@ function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, 
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-section">
-          <div className="sidebar-section-title">
-            Assignment
-          </div>
+          <div className="sidebar-section-title">Assignment</div>
           {assignment ? (
             <>
               <div className="sidebar-field">
@@ -566,9 +573,7 @@ function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, 
         </div>
 
         <div className="sidebar-section">
-          <div className="sidebar-section-title">
-            Participants
-          </div>
+          <div className="sidebar-section-title">Participants</div>
           {validParticipants.length > 0 ? (
             validParticipants.map((p, i) => (
               <div key={i} className="sidebar-field">
@@ -596,9 +601,7 @@ function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, 
 
         {sla && (
           <div className="sidebar-section">
-            <div className="sidebar-section-title">
-              SLA
-            </div>
+            <div className="sidebar-section-title">SLA</div>
             <div className="sidebar-field">
               <div className="sidebar-label">Goal</div>
               <div
@@ -630,9 +633,7 @@ function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, 
 
         {parentCaseInfo && (
           <div className="sidebar-section">
-            <div className="sidebar-section-title">
-              Parent Case
-            </div>
+            <div className="sidebar-section-title">Parent Case</div>
             <div className="sidebar-field">
               <div className="sidebar-label">ID</div>
               <div
