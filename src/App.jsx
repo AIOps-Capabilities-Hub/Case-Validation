@@ -106,6 +106,7 @@ function StagesBar({ stages = [] }) {
             {s.visited_status === "completed" ? "✓" : i + 1}
           </div>
           <span className="stage-label">{s.name}</span>
+          {i < primaryStages.length - 1 && <span className="stage-connector" />}
         </div>
       ))}
     </div>
@@ -140,7 +141,7 @@ function ParticipantCard({ participant }) {
 }
 
 /* ── Case Detail View ─────────────────────────────────────────── */
-function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
+function CaseDetailView({ caseData, referencedUsers = {}, onSubmit, submitting, onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
 
   if (!caseData) return null;
@@ -166,6 +167,10 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
   const assignment = assignments[0];
   const action = assignment?.actions?.[0];
 
+  // Resolve operator IDs to names from referencedUsers map
+  const resolveUser = (id) =>
+    id && referencedUsers[id]?.UserName ? referencedUsers[id].UserName : (id || "—");
+
   const validParticipants = participants.filter(
     (p) => p.fullName || p.firstName,
   );
@@ -176,7 +181,7 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
         {/* Case info bar */}
         <div className="case-info-bar">
           <div className="case-info-left">
-            <div className="case-icon">📋</div>
+            <div className="case-icon">Case</div>
             <div>
               <div className="case-title">
                 {name || "Life Beneficiary Unit"}
@@ -188,10 +193,10 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
           </div>
           <div className="case-meta">
             <div className="meta-chip">
-              🏷️ <strong>{caseTypeName || "Beneficiary"}</strong>
+              Class: <strong>{caseTypeName || "Beneficiary"}</strong>
             </div>
             <div className={`urgency-dot ${urgencyClass(urgency)}`}>
-              {urgencyLabel(urgency)} ({urgency})
+              Urgency: {urgencyLabel(urgency)} ({urgency})
             </div>
             <span
               className={`status-pill ${statusPillClass(status)}`}
@@ -206,7 +211,7 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
         {assignment && (
           <div className="assignment-banner fade-in">
             <div className="assignment-banner-info">
-              <div className="assignment-banner-icon">⏳</div>
+              <div className="assignment-banner-icon">Task</div>
               <div>
                 <div className="assignment-banner-name">
                   {assignment.name || "Awaiting Fulfillment"}
@@ -223,21 +228,21 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
           </div>
         )}
 
+
         {/* Tabs */}
         <div className="card" style={{ padding: 0 }}>
           <div className="tab-list">
             {[
-              { id: "overview", label: "Overview", icon: "📊" },
-              { id: "participants", label: "Participants", icon: "👥" },
-              { id: "stages", label: "Stages", icon: "🗺️" },
-              { id: "sla", label: "SLA", icon: "⏱️" },
+              { id: "overview", label: "Overview" },
+              { id: "participants", label: "Participants" },
+              { id: "stages", label: "Stages" },
+              { id: "sla", label: "SLA" },
             ].map((tab) => (
               <div
                 key={tab.id}
                 className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <span>{tab.icon}</span>
                 {tab.label}
               </div>
             ))}
@@ -281,7 +286,11 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                 </div>
                 <div className="detail-field">
                   <div className="detail-label">Owner</div>
-                  <div className="detail-value">{owner || "—"}</div>
+                  <div className="detail-value">{resolveUser(owner)}</div>
+                </div>
+                <div className="detail-field">
+                  <div className="detail-label">Last Updated By</div>
+                  <div className="detail-value">{resolveUser(caseData.lastUpdatedBy)}</div>
                 </div>
                 <div className="detail-field">
                   <div className="detail-label">Created</div>
@@ -326,7 +335,6 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
               <div className="fade-in">
                 {validParticipants.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-state-icon">👤</div>
                     <div className="empty-state-title">No participants</div>
                     <div className="empty-state-sub">
                       No participant data found on this case.
@@ -347,7 +355,6 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
               <div className="fade-in">
                 {stages.length === 0 ? (
                   <div className="empty-state">
-                    <div className="empty-state-icon">🗺️</div>
                     <div className="empty-state-title">No stage data</div>
                   </div>
                 ) : (
@@ -475,7 +482,6 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <div className="empty-state-icon">⏱️</div>
                     <div className="empty-state-title">No SLA data</div>
                   </div>
                 )}
@@ -512,7 +518,6 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
       <aside className="sidebar">
         <div className="sidebar-section">
           <div className="sidebar-section-title">
-            <span className="sidebar-section-title-icon">📌</span>
             Assignment
           </div>
           {assignment ? (
@@ -562,8 +567,7 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
 
         <div className="sidebar-section">
           <div className="sidebar-section-title">
-            <span className="sidebar-section-title-icon">👤</span>
-            Beneficiary
+            Participants
           </div>
           {validParticipants.length > 0 ? (
             validParticipants.map((p, i) => (
@@ -593,7 +597,6 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
         {sla && (
           <div className="sidebar-section">
             <div className="sidebar-section-title">
-              <span className="sidebar-section-title-icon">⏱️</span>
               SLA
             </div>
             <div className="sidebar-field">
@@ -628,7 +631,6 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
         {parentCaseInfo && (
           <div className="sidebar-section">
             <div className="sidebar-section-title">
-              <span className="sidebar-section-title-icon">🔗</span>
               Parent Case
             </div>
             <div className="sidebar-field">
@@ -823,17 +825,14 @@ function LandingPage({ onLaunch, isMockMode }) {
           {/* Inactive cards */}
           {[
             {
-              icon: "🏠",
               title: "Address Change",
               desc: "Update the mailing or residential address linked to your policy.",
             },
             {
-              icon: "💀",
               title: "Death Claim",
               desc: "Initiate a death claim for a life insurance policy on behalf of a beneficiary.",
             },
             {
-              icon: "💳",
               title: "Premium Payment Update",
               desc: "Change your premium payment method, frequency, or bank details.",
             },
@@ -843,7 +842,6 @@ function LandingPage({ onLaunch, isMockMode }) {
               className="service-card"
               style={{ opacity: 0.75 }}
             >
-              <div className="service-card-icon">{card.icon}</div>
               <h3 className="service-card-title">{card.title}</h3>
               <p className="service-card-desc">{card.desc}</p>
               <div className="service-card-link">GET STARTED →</div>
@@ -852,7 +850,6 @@ function LandingPage({ onLaunch, isMockMode }) {
 
           {/* Active — Case Validation */}
           <div className="service-card active-card" onClick={onLaunch}>
-            <div className="service-card-icon">⏳</div>
             <h3 className="service-card-title">Case Validation</h3>
             <p className="service-card-desc">
               Review and process Awaiting Fulfillment assignments in the Life
@@ -873,7 +870,7 @@ function LandingPage({ onLaunch, isMockMode }) {
             color: "#9ca3af",
           }}
         >
-          🧪 Running in Mock Mode — all API calls are simulated locally.
+          Running in Mock Mode — all API calls are simulated locally.
         </div>
       )}
     </div>
@@ -910,7 +907,6 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
         <div className="card">
           <div className="card-header">
             <div className="card-title">
-              <div className="card-title-icon">⏳</div>
               Awaiting Fulfillment Cases
               <span
                 style={{
@@ -962,7 +958,6 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
           <div className="case-table-wrapper">
             {filtered.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state-icon">🔍</div>
                 <div className="empty-state-title">No cases found</div>
                 <div className="empty-state-sub">
                   {search
@@ -1081,6 +1076,7 @@ export default function App() {
   const [token, setToken] = useState("");
   const [caseList, setCaseList] = useState([]);
   const [caseData, setCaseData] = useState(null);
+  const [referencedUsers, setReferencedUsers] = useState({});
   const [stages, setStages] = useState([]);
   const [assignmentId, setAssignmentId] = useState("");
   const [actionId, setActionId] = useState("");
@@ -1196,6 +1192,7 @@ export default function App() {
         const caseRes = await getCaseDetails(token, caseRef);
         const ci = caseRes.data.caseInfo;
         setCaseData(ci);
+        setReferencedUsers(caseRes.data?.referencedUsers || {});
         setStages(ci.stages || []);
 
         /* Extract assignment + action */
@@ -1299,7 +1296,7 @@ export default function App() {
           <div className="nav-pills">
             {step === "CASE_LIST" && (
               <div className="nav-pill active">
-                ⏳ Awaiting Fulfillment
+                Awaiting Fulfillment
                 <span className="nav-badge">{caseList.length}</span>
               </div>
             )}
@@ -1317,7 +1314,7 @@ export default function App() {
             )}
             {step === "SUCCESS" && (
               <div className="nav-pill active" style={{ color: "#a7f3d0" }}>
-                ✓ Submitted
+                Submitted
               </div>
             )}
           </div>
@@ -1343,16 +1340,15 @@ export default function App() {
       {/* ── ERROR ── */}
       {step === "ERROR" && (
         <div className="center-screen">
-          <div style={{ fontSize: 48, marginBottom: 8 }}>⚠️</div>
           <div className="error-box" style={{ maxWidth: 480 }}>
-            <span>✕</span> {error}
+            <span>Error:</span> {error}
           </div>
-          <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
             <button className="btn btn-ghost" onClick={() => setStep("START")}>
               ← Home
             </button>
             <button className="btn btn-brand" onClick={init}>
-              ↺ Retry
+              Retry
             </button>
           </div>
         </div>
@@ -1380,6 +1376,7 @@ export default function App() {
           )}
           <CaseDetailView
             caseData={caseData}
+            referencedUsers={referencedUsers}
             onSubmit={handleSubmit}
             submitting={submitting}
             onBack={handleBackToList}
