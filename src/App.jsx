@@ -106,7 +106,6 @@ function StagesBar({ stages = [] }) {
             {s.visited_status === "completed" ? "✓" : i + 1}
           </div>
           <span className="stage-label">{s.name}</span>
-          {i < primaryStages.length - 1 && <span className="stage-connector" />}
         </div>
       ))}
     </div>
