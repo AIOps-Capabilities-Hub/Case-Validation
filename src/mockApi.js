@@ -17,7 +17,8 @@ const mockCaseList = [
     pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
     pyAssignmentStatus: "Open-ClaimantPackageSent",
     pyInstructions: "Awaiting Fulfillment",
-    pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21393!REQUIREMENTSFULFILLMENT",
+    pzInsKey:
+      "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21393!REQUIREMENTSFULFILLMENT",
     pxRefObjectKey: "AIG-LR-LIFE-CLM-WORK BU-21393",
     pyLabel: "Claimant, Beneficiary (BENETESTINTRTEREL05  TESTBENELASTNAME)",
     pyFlowType: "RequirementsFulfillment",
@@ -34,7 +35,8 @@ const mockCaseList = [
     pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
     pyAssignmentStatus: "Open-ClaimantPackageSent",
     pyInstructions: "Awaiting Fulfillment",
-    pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21392!REQUIREMENTSFULFILLMENT",
+    pzInsKey:
+      "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21392!REQUIREMENTSFULFILLMENT",
     pxRefObjectKey: "AIG-LR-LIFE-CLM-WORK BU-21392",
     pyLabel: "Claimant, Beneficiary (KZNJD  TSZNO)",
     pyFlowType: "RequirementsFulfillment",
@@ -51,7 +53,8 @@ const mockCaseList = [
     pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
     pyAssignmentStatus: "Open-ClaimantPackageSent",
     pyInstructions: "Awaiting Fulfillment",
-    pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21389!REQUIREMENTSFULFILLMENT",
+    pzInsKey:
+      "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21389!REQUIREMENTSFULFILLMENT",
     pxRefObjectKey: "AIG-LR-LIFE-CLM-WORK BU-21389",
     pyLabel: "Claimant, Beneficiary (samantha  warner)",
     pyFlowType: "RequirementsFulfillment",
@@ -68,7 +71,8 @@ const mockCaseList = [
     pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
     pyAssignmentStatus: "Open-ClaimantPackageSent",
     pyInstructions: "Awaiting Fulfillment",
-    pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21416!REQUIREMENTSFULFILLMENT",
+    pzInsKey:
+      "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21416!REQUIREMENTSFULFILLMENT",
     pxRefObjectKey: "AIG-LR-LIFE-CLM-WORK BU-21416",
     pyLabel: "Claimant, Beneficiary (Peter  Bill)",
     pyFlowType: "RequirementsFulfillment",
@@ -85,7 +89,8 @@ const mockCaseList = [
     pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
     pyAssignmentStatus: "Open-ClaimantPackageSent",
     pyInstructions: "Awaiting Fulfillment",
-    pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21419!REQUIREMENTSFULFILLMENT",
+    pzInsKey:
+      "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21419!REQUIREMENTSFULFILLMENT",
     pxRefObjectKey: "AIG-LR-LIFE-CLM-WORK BU-21419",
     pyLabel: "Claimant, Beneficiary (Rohit  Pathak)",
     pyFlowType: "RequirementsFulfillment",
@@ -102,7 +107,8 @@ const mockCaseList = [
     pxRefObjectClass: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
     pyAssignmentStatus: "Open-ClaimantPackageSent",
     pyInstructions: "Awaiting Fulfillment",
-    pzInsKey: "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21418!REQUIREMENTSFULFILLMENT",
+    pzInsKey:
+      "ASSIGN-WORKBASKET AIG-LR-LIFE-CLM-WORK BU-21418!REQUIREMENTSFULFILLMENT",
     pxRefObjectKey: "AIG-LR-LIFE-CLM-WORK BU-21418",
     pyLabel: "Claimant, Beneficiary (Peter  Bill)",
     pyFlowType: "RequirementsFulfillment",
@@ -111,7 +117,10 @@ const mockCaseList = [
 ];
 
 // ── Mock case info generator (mirrors Get_Case_API_Response.txt) ──────────
-const mockCaseInfo = (caseKey = "AIG-LR-LIFE-CLM-WORK BU-21419", insName = "BU-21419") => ({
+const mockCaseInfo = (
+  caseKey = "AIG-LR-LIFE-CLM-WORK BU-21419",
+  insName = "BU-21419",
+) => ({
   ID: caseKey,
   businessID: insName,
   name: "Claimant, Beneficiary (Rohit  Pathak)",
@@ -137,10 +146,30 @@ const mockCaseInfo = (caseKey = "AIG-LR-LIFE-CLM-WORK BU-21419", insName = "BU-2
     hasMoreAncestors: "true",
   },
   stages: [
-    { ID: "PRIM1", name: "Verify Beneficiary", visited_status: "completed", type: "Primary" },
-    { ID: "PRIM2", name: "Document Fulfillment", visited_status: "active", type: "Primary" },
-    { ID: "PRIM7", name: "Create Disbursement", visited_status: "future", type: "Primary" },
-    { ID: "PRIM11", name: "Complete", visited_status: "future", type: "Primary" },
+    {
+      ID: "PRIM1",
+      name: "Verify Beneficiary",
+      visited_status: "completed",
+      type: "Primary",
+    },
+    {
+      ID: "PRIM2",
+      name: "Document Fulfillment",
+      visited_status: "active",
+      type: "Primary",
+    },
+    {
+      ID: "PRIM7",
+      name: "Create Disbursement",
+      visited_status: "future",
+      type: "Primary",
+    },
+    {
+      ID: "PRIM11",
+      name: "Complete",
+      visited_status: "future",
+      type: "Primary",
+    },
     { ID: "PRIM12", name: "Close", visited_status: "future", type: "Primary" },
   ],
   participants: [
@@ -257,9 +286,15 @@ const mockAssignmentView = (caseKey, insName) => ({
     actionButtons: {
       secondary: [
         { jsAction: "cancelAssignment", name: "Cancel", actionID: "cancel" },
-        { jsAction: "saveAssignment", name: "Save for later", actionID: "save" },
+        {
+          jsAction: "saveAssignment",
+          name: "Save for later",
+          actionID: "save",
+        },
       ],
-      main: [{ jsAction: "finishAssignment", name: "Submit", actionID: "submit" }],
+      main: [
+        { jsAction: "finishAssignment", name: "Submit", actionID: "submit" },
+      ],
     },
   },
 });
@@ -272,11 +307,14 @@ const jsonResponse = (body, status = 200, headers = {}) =>
   });
 
 const getRequestMethod = (input, options) =>
-  (options.method || (typeof input !== "string" ? input.method : "GET")).toUpperCase();
+  (
+    options.method || (typeof input !== "string" ? input.method : "GET")
+  ).toUpperCase();
 
 const getRequestHeaders = (input, options) => {
   if (options.headers) return new Headers(options.headers);
-  if (typeof input !== "string" && input.headers) return new Headers(input.headers);
+  if (typeof input !== "string" && input.headers)
+    return new Headers(input.headers);
   return new Headers();
 };
 
@@ -287,7 +325,8 @@ const getRequestBody = async (input, options) => {
 };
 
 const requireMockToken = (input, options) => {
-  const authorization = getRequestHeaders(input, options).get("Authorization") || "";
+  const authorization =
+    getRequestHeaders(input, options).get("Authorization") || "";
   if (authorization !== `Bearer ${MOCK_TOKEN}`) {
     return jsonResponse({ message: "Mock authentication failed" }, 401);
   }
@@ -306,8 +345,14 @@ const handleMockRequest = async (input, options = {}) => {
   if (url.includes("/oauth2/") || url.endsWith("/token")) {
     const requestBody = await getRequestBody(input, options);
     const params = new URLSearchParams(requestBody || "");
-    if (method !== "POST" || params.get("grant_type") !== "client_credentials") {
-      return jsonResponse({ message: "Mock token endpoint expects POST client_credentials" }, 400);
+    if (
+      method !== "POST" ||
+      params.get("grant_type") !== "client_credentials"
+    ) {
+      return jsonResponse(
+        { message: "Mock token endpoint expects POST client_credentials" },
+        400,
+      );
     }
     return jsonResponse({
       access_token: MOCK_TOKEN,
@@ -331,10 +376,16 @@ const handleMockRequest = async (input, options = {}) => {
   }
 
   // ── Case details GET ────────────────────────────────────────────────────
-  if (method === "GET" && url.includes("/cases/") && !url.includes("/assignments/")) {
+  if (
+    method === "GET" &&
+    url.includes("/cases/") &&
+    !url.includes("/assignments/")
+  ) {
     // Extract case key from URL
     const caseMatch = url.match(/\/cases\/([^?]+)/);
-    const caseKey = caseMatch ? decodeURIComponent(caseMatch[1]) : "AIG-LR-LIFE-CLM-WORK BU-21419";
+    const caseKey = caseMatch
+      ? decodeURIComponent(caseMatch[1])
+      : "AIG-LR-LIFE-CLM-WORK BU-21419";
     const insName = caseKey.split(" ").pop() || "BU-21419";
     return jsonResponse({
       data: { caseInfo: mockCaseInfo(caseKey, insName) },
@@ -342,17 +393,29 @@ const handleMockRequest = async (input, options = {}) => {
   }
 
   // ── Assignment view GET ─────────────────────────────────────────────────
-  if (method === "GET" && url.includes("/assignments/") && url.includes("/actions/")) {
+  if (
+    method === "GET" &&
+    url.includes("/assignments/") &&
+    url.includes("/actions/")
+  ) {
     const asgMatch = url.match(/\/assignments\/([^/]+)\/actions\/([^?]+)/);
     const caseKey = asgMatch
-      ? decodeURIComponent(asgMatch[1]).replace("ASSIGN-WORKBASKET ", "").split("!")[0]
+      ? decodeURIComponent(asgMatch[1])
+          .replace("ASSIGN-WORKBASKET ", "")
+          .split("!")[0]
       : "AIG-LR-LIFE-CLM-WORK BU-21419";
     const insName = caseKey.split(" ").pop() || "BU-21419";
-    return jsonResponse(mockAssignmentView(caseKey, insName), 200, { ETag: '"mock-etag-cv"' });
+    return jsonResponse(mockAssignmentView(caseKey, insName), 200, {
+      ETag: '"mock-etag-cv"',
+    });
   }
 
   // ── Assignment action PATCH (submit) ────────────────────────────────────
-  if (method === "PATCH" && url.includes("/assignments/") && url.includes("/actions/")) {
+  if (
+    method === "PATCH" &&
+    url.includes("/assignments/") &&
+    url.includes("/actions/")
+  ) {
     return jsonResponse({
       data: {
         caseInfo: {

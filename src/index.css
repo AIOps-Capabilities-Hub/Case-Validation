@@ -107,7 +107,11 @@ body {
 /* ── Top Navigation ────────────────────────────────────────────── */
 .top-nav {
   height: var(--nav-h);
-  background: linear-gradient(90deg, var(--brand-900) 0%, var(--brand-700) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--brand-900) 0%,
+    var(--brand-700) 100%
+  );
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -125,7 +129,12 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--brand-400), #60a5fa, var(--brand-400));
+  background: linear-gradient(
+    90deg,
+    var(--brand-400),
+    #60a5fa,
+    var(--brand-400)
+  );
 }
 
 .nav-brand {
@@ -297,8 +306,13 @@ body {
 }
 
 @keyframes ring {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(26, 86, 219, 0.25); }
-  50% { box-shadow: 0 0 0 7px rgba(26, 86, 219, 0.08); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(26, 86, 219, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(26, 86, 219, 0.08);
+  }
 }
 
 .stage-label {
@@ -669,14 +683,26 @@ body {
   border-radius: 50%;
 }
 
-.urgency-dot.high::before { background: var(--urgency-high); }
-.urgency-dot.high { color: var(--urgency-high); }
+.urgency-dot.high::before {
+  background: var(--urgency-high);
+}
+.urgency-dot.high {
+  color: var(--urgency-high);
+}
 
-.urgency-dot.medium::before { background: var(--urgency-medium); }
-.urgency-dot.medium { color: var(--urgency-medium); }
+.urgency-dot.medium::before {
+  background: var(--urgency-medium);
+}
+.urgency-dot.medium {
+  color: var(--urgency-medium);
+}
 
-.urgency-dot.low::before { background: var(--urgency-low); }
-.urgency-dot.low { color: var(--urgency-low); }
+.urgency-dot.low::before {
+  background: var(--urgency-low);
+}
+.urgency-dot.low {
+  color: var(--urgency-low);
+}
 
 /* ── Action Buttons ────────────────────────────────────────────── */
 .action-bar {
@@ -712,7 +738,11 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-dark) 100%
+  );
   color: #fff;
   box-shadow: 0 2px 8px rgba(26, 86, 219, 0.3);
 }
@@ -723,7 +753,11 @@ body {
 }
 
 .btn-brand {
-  background: linear-gradient(135deg, var(--brand-400) 0%, var(--brand-500) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--brand-400) 0%,
+    var(--brand-500) 100%
+  );
   color: #fff;
   box-shadow: 0 2px 8px rgba(107, 33, 168, 0.3);
 }
@@ -772,12 +806,21 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.75); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.75);
+  }
 }
 
 /* ── Full-screen states ────────────────────────────────────────── */
@@ -1098,8 +1141,14 @@ textarea.form-input {
 }
 
 @keyframes pop-in {
-  from { transform: scale(0); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .success-title {
@@ -1143,8 +1192,14 @@ textarea.form-input {
 }
 
 @keyframes slide-up {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .toast.success {
@@ -1189,8 +1244,14 @@ textarea.form-input {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Empty state ───────────────────────────────────────────────── */
@@ -1315,10 +1376,20 @@ textarea.form-input {
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 
 /* ── Landing page ──────────────────────────────────────────────── */
 .landing-shell {
@@ -1331,7 +1402,11 @@ textarea.form-input {
 }
 
 .landing-header {
-  background: linear-gradient(90deg, var(--brand-900) 0%, var(--brand-700) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--brand-900) 0%,
+    var(--brand-700) 100%
+  );
   color: #fff;
   padding: 16px 40px;
   display: flex;
@@ -1342,7 +1417,11 @@ textarea.form-input {
 }
 
 .landing-hero {
-  background: linear-gradient(180deg, var(--brand-900) 0%, var(--brand-700) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--brand-900) 0%,
+    var(--brand-700) 100%
+  );
   padding: 60px 20px 80px;
   text-align: center;
   color: #fff;
@@ -1357,7 +1436,11 @@ textarea.form-input {
   left: -20%;
   width: 140%;
   height: 200%;
-  background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(168, 85, 247, 0.15) 0%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 

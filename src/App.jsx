@@ -7,8 +7,7 @@ const CLIENT_SECRET = import.meta.env.VITE_CLIENT_SECRET;
 const TOKEN_URL = import.meta.env.VITE_TOKEN_URL;
 const API_BASE = import.meta.env.VITE_API_BASE;
 const ASSIGN_BASE =
-  import.meta.env.VITE_ASSIGNMENT_API_BASE ||
-  import.meta.env.VITE_API_BASE;
+  import.meta.env.VITE_ASSIGNMENT_API_BASE || import.meta.env.VITE_API_BASE;
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 const encodeId = (id) => encodeURIComponent(id);
@@ -67,7 +66,9 @@ const handleApiResponse = async (res, defaultErrorMsg) => {
     try {
       const t = await res.text();
       if (t) errorMsg = t;
-    } catch { /* empty */ }
+    } catch {
+      /* empty */
+    }
   }
   throw new Error(errorMsg);
 };
@@ -114,16 +115,18 @@ function StagesBar({ stages = [] }) {
 /* ── Participant Card ─────────────────────────────────────────── */
 function ParticipantCard({ participant }) {
   if (!participant.fullName && !participant.firstName) return null;
-  const initials = [participant.firstName?.[0], participant.lastName?.[0]]
-    .filter(Boolean)
-    .join("")
-    .toUpperCase() || "?";
+  const initials =
+    [participant.firstName?.[0], participant.lastName?.[0]]
+      .filter(Boolean)
+      .join("")
+      .toUpperCase() || "?";
   return (
     <div className="participant-card fade-in">
       <div className="participant-avatar">{initials}</div>
       <div className="participant-info">
         <div className="participant-name">
-          {participant.fullName || `${participant.firstName} ${participant.lastName}`}
+          {participant.fullName ||
+            `${participant.firstName} ${participant.lastName}`}
         </div>
         {participant.role && (
           <div className="participant-role">{participant.role}</div>
@@ -143,9 +146,20 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
   if (!caseData) return null;
 
   const {
-    ID, businessID, name, status, urgency,
-    stageLabel, caseTypeName, owner, createTime, lastUpdateTime,
-    parentCaseInfo, sla, participants = [], stages = [],
+    ID,
+    businessID,
+    name,
+    status,
+    urgency,
+    stageLabel,
+    caseTypeName,
+    owner,
+    createTime,
+    lastUpdateTime,
+    parentCaseInfo,
+    sla,
+    participants = [],
+    stages = [],
     assignments = [],
   } = caseData;
 
@@ -164,7 +178,9 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
           <div className="case-info-left">
             <div className="case-icon">📋</div>
             <div>
-              <div className="case-title">{name || "Life Beneficiary Unit"}</div>
+              <div className="case-title">
+                {name || "Life Beneficiary Unit"}
+              </div>
               <div className="case-id">
                 {ID} {businessID && `· ${businessID}`}
               </div>
@@ -197,7 +213,9 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                 </div>
                 <div className="assignment-banner-sub">
                   {assignment.instructions} ·{" "}
-                  {assignment.assigneeInfo?.name || assignment.assigneeInfo?.ID || "—"}
+                  {assignment.assigneeInfo?.name ||
+                    assignment.assigneeInfo?.ID ||
+                    "—"}
                   {action && ` · Action: ${action.ID}`}
                 </div>
               </div>
@@ -277,11 +295,23 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                   <div className="detail-field">
                     <div className="detail-label">Parent Case</div>
                     <div className="detail-value">
-                      <span style={{ fontSize: 12, color: "var(--primary)", fontFamily: "monospace" }}>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: "var(--primary)",
+                          fontFamily: "monospace",
+                        }}
+                      >
                         {parentCaseInfo.ID}
                       </span>
                       {parentCaseInfo.name && (
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: "var(--text-muted)",
+                            marginTop: 2,
+                          }}
+                        >
                           {parentCaseInfo.name}
                         </div>
                       )}
@@ -298,7 +328,9 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                   <div className="empty-state">
                     <div className="empty-state-icon">👤</div>
                     <div className="empty-state-title">No participants</div>
-                    <div className="empty-state-sub">No participant data found on this case.</div>
+                    <div className="empty-state-sub">
+                      No participant data found on this case.
+                    </div>
                   </div>
                 ) : (
                   <div className="participant-list">
@@ -319,7 +351,13 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                     <div className="empty-state-title">No stage data</div>
                   </div>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
                     {stages.map((s, i) => (
                       <div
                         key={s.ID}
@@ -328,7 +366,10 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                           alignItems: "center",
                           gap: 14,
                           padding: "12px 16px",
-                          background: s.visited_status === "active" ? "var(--primary-light)" : "var(--bg)",
+                          background:
+                            s.visited_status === "active"
+                              ? "var(--primary-light)"
+                              : "var(--bg)",
                           border: `1px solid ${s.visited_status === "active" ? "rgba(26,86,219,0.25)" : "var(--border)"}`,
                           borderRadius: "var(--radius-sm)",
                           transition: "var(--transition)",
@@ -339,14 +380,35 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                           {s.visited_status === "completed" ? "✓" : i + 1}
                         </div>
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: s.visited_status === "active" ? "var(--primary)" : "var(--text)" }}>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              fontSize: 13,
+                              color:
+                                s.visited_status === "active"
+                                  ? "var(--primary)"
+                                  : "var(--text)",
+                            }}
+                          >
                             {s.name}
                           </div>
-                          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: "var(--text-muted)",
+                              marginTop: 2,
+                            }}
+                          >
                             {s.type} · {s.transitionType} · {s.ID}
                           </div>
                           {s.entryTime && (
-                            <div style={{ fontSize: 11, color: "var(--text-subtle)", marginTop: 1 }}>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "var(--text-subtle)",
+                                marginTop: 1,
+                              }}
+                            >
                               Entered: {fmtDate(s.entryTime)}
                             </div>
                           )}
@@ -363,21 +425,21 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
                               s.visited_status === "completed"
                                 ? "var(--success-light)"
                                 : s.visited_status === "active"
-                                ? "var(--primary-light)"
-                                : "var(--bg)",
+                                  ? "var(--primary-light)"
+                                  : "var(--bg)",
                             color:
                               s.visited_status === "completed"
                                 ? "var(--success)"
                                 : s.visited_status === "active"
-                                ? "var(--primary)"
-                                : "var(--text-subtle)",
+                                  ? "var(--primary)"
+                                  : "var(--text-subtle)",
                             border: "1px solid",
                             borderColor:
                               s.visited_status === "completed"
                                 ? "#a7f3d0"
                                 : s.visited_status === "active"
-                                ? "rgba(26,86,219,0.2)"
-                                : "var(--border)",
+                                  ? "rgba(26,86,219,0.2)"
+                                  : "var(--border)",
                           }}
                         >
                           {s.visited_status}
@@ -461,12 +523,16 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
               </div>
               <div className="sidebar-field">
                 <div className="sidebar-label">Process</div>
-                <div className="sidebar-value">{assignment.processName || "—"}</div>
+                <div className="sidebar-value">
+                  {assignment.processName || "—"}
+                </div>
               </div>
               <div className="sidebar-field">
                 <div className="sidebar-label">Assignee</div>
                 <div className="sidebar-value">
-                  {assignment.assigneeInfo?.name || assignment.assigneeInfo?.ID || "—"}
+                  {assignment.assigneeInfo?.name ||
+                    assignment.assigneeInfo?.ID ||
+                    "—"}
                 </div>
               </div>
               <div className="sidebar-field">
@@ -478,7 +544,10 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
               {action && (
                 <div className="sidebar-field">
                   <div className="sidebar-label">Action ID</div>
-                  <div className="sidebar-value" style={{ fontFamily: "monospace", fontSize: 11 }}>
+                  <div
+                    className="sidebar-value"
+                    style={{ fontFamily: "monospace", fontSize: 11 }}
+                  >
                     {action.ID}
                   </div>
                 </div>
@@ -500,9 +569,17 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
             validParticipants.map((p, i) => (
               <div key={i} className="sidebar-field">
                 <div className="sidebar-label">{p.role || "Participant"}</div>
-                <div className="sidebar-value">{p.fullName || `${p.firstName} ${p.lastName}`}</div>
+                <div className="sidebar-value">
+                  {p.fullName || `${p.firstName} ${p.lastName}`}
+                </div>
                 {p.email && (
-                  <div style={{ fontSize: 11, color: "var(--primary)", marginTop: 2 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "var(--primary)",
+                      marginTop: 2,
+                    }}
+                  >
                     {p.email}
                   </div>
                 )}
@@ -523,7 +600,10 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
               <div className="sidebar-label">Goal</div>
               <div
                 className="sidebar-value"
-                style={{ fontSize: 12, color: isSlaWarning(sla.goal) ? "var(--warning)" : undefined }}
+                style={{
+                  fontSize: 12,
+                  color: isSlaWarning(sla.goal) ? "var(--warning)" : undefined,
+                }}
               >
                 {fmtDate(sla.goal)}
               </div>
@@ -532,7 +612,12 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
               <div className="sidebar-label">Deadline</div>
               <div
                 className="sidebar-value"
-                style={{ fontSize: 12, color: isSlaWarning(sla.deadline) ? "var(--danger)" : undefined }}
+                style={{
+                  fontSize: 12,
+                  color: isSlaWarning(sla.deadline)
+                    ? "var(--danger)"
+                    : undefined,
+                }}
               >
                 {fmtDate(sla.deadline)}
               </div>
@@ -548,7 +633,10 @@ function CaseDetailView({ caseData, onSubmit, submitting, onBack }) {
             </div>
             <div className="sidebar-field">
               <div className="sidebar-label">ID</div>
-              <div className="sidebar-value" style={{ fontFamily: "monospace", fontSize: 11 }}>
+              <div
+                className="sidebar-value"
+                style={{ fontFamily: "monospace", fontSize: 11 }}
+              >
                 {parentCaseInfo.ID}
               </div>
             </div>
@@ -593,17 +681,43 @@ function LandingPage({ onLaunch, isMockMode }) {
             <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: 0.3 }}>
               Corebridge Financial
             </div>
-            <div style={{ fontSize: 10, color: "#d8b4fe", textTransform: "uppercase", letterSpacing: 1 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "#d8b4fe",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+              }}
+            >
               Claims Management Center
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 24, fontSize: 13, fontWeight: 600, alignItems: "center" }}>
-          <span style={{ background: "#8b5cf6", padding: "6px 16px", borderRadius: 20, cursor: "pointer" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 24,
+            fontSize: 13,
+            fontWeight: 600,
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              background: "#8b5cf6",
+              padding: "6px 16px",
+              borderRadius: 20,
+              cursor: "pointer",
+            }}
+          >
             HOME
           </span>
-          <span style={{ color: "#d8b4fe", cursor: "pointer" }}>SELF-SERVICE</span>
-          <span style={{ color: "#d8b4fe", cursor: "pointer" }}>TRACK REQUEST</span>
+          <span style={{ color: "#d8b4fe", cursor: "pointer" }}>
+            SELF-SERVICE
+          </span>
+          <span style={{ color: "#d8b4fe", cursor: "pointer" }}>
+            TRACK REQUEST
+          </span>
         </div>
       </header>
 
@@ -676,11 +790,27 @@ function LandingPage({ onLaunch, isMockMode }) {
 
       {/* Service cards */}
       <div className="landing-cards">
-        <h2 style={{ textAlign: "center", color: "#1e1b4b", fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
+        <h2
+          style={{
+            textAlign: "center",
+            color: "#1e1b4b",
+            fontSize: 24,
+            fontWeight: 700,
+            marginBottom: 8,
+          }}
+        >
           Self-service, on your terms
         </h2>
-        <p style={{ textAlign: "center", color: "#6b7280", fontSize: 14, marginBottom: 40 }}>
-          Handle the most common claims requests online, 24/7 — no phone calls required.
+        <p
+          style={{
+            textAlign: "center",
+            color: "#6b7280",
+            fontSize: 14,
+            marginBottom: 40,
+          }}
+        >
+          Handle the most common claims requests online, 24/7 — no phone calls
+          required.
         </p>
 
         <div
@@ -692,9 +822,21 @@ function LandingPage({ onLaunch, isMockMode }) {
         >
           {/* Inactive cards */}
           {[
-            { icon: "🏠", title: "Address Change", desc: "Update the mailing or residential address linked to your policy." },
-            { icon: "💀", title: "Death Claim", desc: "Initiate a death claim for a life insurance policy on behalf of a beneficiary." },
-            { icon: "💳", title: "Premium Payment Update", desc: "Change your premium payment method, frequency, or bank details." },
+            {
+              icon: "🏠",
+              title: "Address Change",
+              desc: "Update the mailing or residential address linked to your policy.",
+            },
+            {
+              icon: "💀",
+              title: "Death Claim",
+              desc: "Initiate a death claim for a life insurance policy on behalf of a beneficiary.",
+            },
+            {
+              icon: "💳",
+              title: "Premium Payment Update",
+              desc: "Change your premium payment method, frequency, or bank details.",
+            },
           ].map((card) => (
             <div
               key={card.title}
@@ -723,7 +865,14 @@ function LandingPage({ onLaunch, isMockMode }) {
       </div>
 
       {isMockMode && (
-        <div style={{ textAlign: "center", padding: "20px", fontSize: 12, color: "#9ca3af" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "20px",
+            fontSize: 12,
+            color: "#9ca3af",
+          }}
+        >
           🧪 Running in Mock Mode — all API calls are simulated locally.
         </div>
       )}
@@ -739,7 +888,10 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
   const filtered = cases.filter((c) => {
     const label = (c.pyLabel || "").toLowerCase();
     const id = (c.pxRefObjectInsName || c.pxRefObjectKey || "").toLowerCase();
-    const matchSearch = !search || label.includes(search.toLowerCase()) || id.includes(search.toLowerCase());
+    const matchSearch =
+      !search ||
+      label.includes(search.toLowerCase()) ||
+      id.includes(search.toLowerCase());
     const u = Number(c.pxUrgencyAssign || 0);
     const matchUrgency =
       urgencyFilter === "all" ||
@@ -751,7 +903,10 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
 
   return (
     <div className="app-body">
-      <main className="main-content fade-in" style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}>
+      <main
+        className="main-content fade-in"
+        style={{ maxWidth: 960, margin: "0 auto", width: "100%" }}
+      >
         <div className="card">
           <div className="card-header">
             <div className="card-title">
@@ -830,7 +985,10 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
                 </thead>
                 <tbody>
                   {filtered.map((c, i) => {
-                    const insName = c.pxRefObjectInsName || c.pxRefObjectKey?.split(" ").pop() || "—";
+                    const insName =
+                      c.pxRefObjectInsName ||
+                      c.pxRefObjectKey?.split(" ").pop() ||
+                      "—";
                     const label = c.pyLabel || c.pyInstructions || "—";
                     const queue = c.pxAssignedOperatorID || "—";
                     const urg = Number(c.pxUrgencyAssign || 0);
@@ -839,7 +997,9 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
                       <tr
                         key={c.pzInsKey || i}
                         className="fade-in"
-                        onClick={() => onSelect(c.pxRefObjectKey || c.pxRefObjectInsName)}
+                        onClick={() =>
+                          onSelect(c.pxRefObjectKey || c.pxRefObjectInsName)
+                        }
                       >
                         <td>
                           <span className="case-id-cell">{insName}</span>
@@ -847,11 +1007,15 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
                         <td style={{ maxWidth: 200, wordBreak: "break-word" }}>
                           {label}
                         </td>
-                        <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                        <td
+                          style={{ fontSize: 12, color: "var(--text-muted)" }}
+                        >
                           {queue}
                         </td>
                         <td>
-                          <span className={`status-pill ${statusPillClass(c.pyAssignmentStatus)}`}>
+                          <span
+                            className={`status-pill ${statusPillClass(c.pyAssignmentStatus)}`}
+                          >
                             {c.pyAssignmentStatus || "Open"}
                           </span>
                         </td>
@@ -860,7 +1024,9 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
                             {urgencyLabel(urg)} ({urg})
                           </span>
                         </td>
-                        <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                        <td
+                          style={{ fontSize: 12, color: "var(--text-muted)" }}
+                        >
                           {c.pxTaskLabel || c.pxTaskName || "—"}
                         </td>
                         <td>
@@ -868,7 +1034,9 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
                             className="btn btn-sm btn-brand"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onSelect(c.pxRefObjectKey || c.pxRefObjectInsName);
+                              onSelect(
+                                c.pxRefObjectKey || c.pxRefObjectInsName,
+                              );
                             }}
                           >
                             Open →
@@ -882,7 +1050,10 @@ function CaseList({ cases, onSelect, onBack, totalCount }) {
             )}
           </div>
 
-          <div className="action-bar" style={{ justifyContent: "space-between" }}>
+          <div
+            className="action-bar"
+            style={{ justifyContent: "space-between" }}
+          >
             <button className="btn btn-ghost" onClick={onBack}>
               ← Home
             </button>
@@ -951,19 +1122,16 @@ export default function App() {
   /* ── 2. Fetch Case List ───────────────────────────────────────── */
   const getCaseList = useCallback(async (tok) => {
     setLoadingMsg("Fetching Awaiting Fulfillment cases…");
-    const res = await fetch(
-      `${API_BASE}/data_views/D_GetCasesOnAssignment`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${tok}`,
-        },
-        body: JSON.stringify({
-          dataViewParameters: { TaskLabel: "Awaiting Fulfillment" },
-        }),
+    const res = await fetch(`${API_BASE}/data_views/D_GetCasesOnAssignment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tok}`,
       },
-    );
+      body: JSON.stringify({
+        dataViewParameters: { TaskLabel: "Awaiting Fulfillment" },
+      }),
+    });
     return handleApiResponse(res, "Failed to fetch case list");
   }, []);
 
@@ -1137,8 +1305,12 @@ export default function App() {
             )}
             {step === "CASE_DETAIL" && caseData && (
               <>
-                <div className="nav-pill">{caseData.businessID || caseData.ID}</div>
-                <div className={`nav-pill urgency-dot ${urgencyClass(caseData.urgency)}`}>
+                <div className="nav-pill">
+                  {caseData.businessID || caseData.ID}
+                </div>
+                <div
+                  className={`nav-pill urgency-dot ${urgencyClass(caseData.urgency)}`}
+                >
                   {urgencyLabel(caseData.urgency)}
                 </div>
               </>
@@ -1229,17 +1401,27 @@ export default function App() {
               {caseData && (
                 <>
                   <br />
-                  <span style={{ fontSize: 12, color: "var(--text-subtle)", fontFamily: "monospace" }}>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "var(--text-subtle)",
+                      fontFamily: "monospace",
+                    }}
+                  >
                     {caseData.businessID || caseData.ID}
                   </span>
                 </>
               )}
             </div>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <button
-                className="btn btn-ghost"
-                onClick={handleBackToList}
-              >
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <button className="btn btn-ghost" onClick={handleBackToList}>
                 ← Case List
               </button>
               <button
