@@ -166,7 +166,7 @@ function RequirementRow({ item, comment, onComment }) {
   );
 }
 
-function CaseDetail({ caseData, onSubmit, onBack, submitting, onUpload, uploading, attachments }) {
+function CaseDetail({ caseData, onSubmit, onSave, onBack, submitting, onUpload, uploading, attachments }) {
   const inputRef = useRef(null);
   const [comments, setComments] = useState({});
   const content = caseData?.content || {};
@@ -244,7 +244,7 @@ function CaseDetail({ caseData, onSubmit, onBack, submitting, onUpload, uploadin
       <footer className="form-actions">
         <button className="outline-button" onClick={onBack}>CANCEL</button>
         <div>
-          <button className="outline-button save-button" disabled={!action || submitting}>SAVE</button>
+          <button className="outline-button save-button" onClick={onSave} disabled={!action || submitting}>SAVE</button>
           <button className="primary-button submit-button" onClick={onSubmit} disabled={!action || submitting}>
             {submitting ? "SUBMITTING…" : "SUBMIT"}
           </button>
@@ -353,14 +353,34 @@ export default function App() {
     }
   }, [caseData, token, notify]);
 
+  const save = useCallback(async () => {
+    if (!assignmentId || !actionId) return;
+    setSubmitting(true);
+    try {
+      const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+      if (ifMatch) headers["If-Match"] = ifMatch;
+      const response = await fetch(`${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ content: {} }),
+      });
+      await apiResponse(response, "Save failed.");
+      notify("Assignment saved successfully");
+    } catch (caught) {
+      notify(caught.message, "error");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [assignmentId, actionId, token, ifMatch, notify]);
+
   const submit = useCallback(async () => {
     if (!assignmentId || !actionId) return;
     setSubmitting(true);
     try {
       const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
       if (ifMatch) headers["If-Match"] = ifMatch;
-      const response = await fetch(`${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}?viewType=form`, {
-        method: "PATCH",
+      const response = await fetch(`${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}`, {
+        method: "POST",
         headers,
         body: JSON.stringify({ content: {} }),
       });
@@ -395,7 +415,7 @@ export default function App() {
       )}
       {step === "CASE_LIST" && <CaseList cases={cases} onSelect={selectCase} onBack={home} />}
       {step === "CASE_DETAIL" && caseData && (
-        <CaseDetail caseData={caseData} onSubmit={submit} onBack={() => setStep("CASE_LIST")} submitting={submitting} onUpload={uploadAttachment} uploading={uploading} attachments={attachments} />
+        <CaseDetail caseData={caseData} onSubmit={submit} onSave={save} onBack={() => setStep("CASE_LIST")} submitting={submitting} onUpload={uploadAttachment} uploading={uploading} attachments={attachments} />
       )}
       {step === "SUCCESS" && (
         <div className="state-screen">

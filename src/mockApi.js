@@ -890,11 +890,12 @@ const handleMockRequest = async (input, options = {}) => {
     });
   }
 
-  // ── Assignment action PATCH (submit) ────────────────────────────────────
+  // ── Assignment action POST (submit) ────────────────────────────────────
   if (
-    method === "PATCH" &&
+    method === "POST" &&
     url.includes("/assignments/") &&
-    url.includes("/actions/")
+    url.includes("/actions/") &&
+    !url.includes("/attachments/")
   ) {
     return jsonResponse({
       data: {
@@ -903,6 +904,19 @@ const handleMockRequest = async (input, options = {}) => {
           status: "Resolved-Fulfilled",
           assignments: [],
         },
+      },
+    });
+  }
+
+  // ── Assignment action PATCH (save) ─────────────────────────────────────
+  if (
+    method === "PATCH" &&
+    url.includes("/assignments/") &&
+    url.includes("/actions/")
+  ) {
+    return jsonResponse({
+      data: {
+        caseInfo: mockCaseInfo(),
       },
     });
   }
