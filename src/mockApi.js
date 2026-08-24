@@ -692,97 +692,161 @@ const mockAssignmentView = (caseKey, insName) => ({
   data: {
     caseInfo: mockCaseInfo(caseKey, insName),
   },
-  uiResources: {
-    resources: {
-      views: {
-        pyActionStub: [
-          {
-            name: "pyActionStub",
-            type: "View",
-            config: {
-              template: "OneColumn",
-              ruleClass: "Work-",
-              localeReference: "@LR WORK-!VIEW!PYACTIONSTUB",
+  view: {
+    validationMessages: "",
+    visible: true,
+    appliesTo: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
+    groups: [
+      {
+        layout: {
+          visible: true,
+          titleFormat: "h2",
+          groupsVisibility: true,
+          containerFormat: "NOHEADER",
+          groups: [
+            {
+              caption: {
+                visible: true,
+                value: "Awaiting Beneficiary to respond"
+              }
+            }
+          ],
+          layoutFormat: "SIMPLELAYOUT",
+          title: ""
+        }
+      },
+      {
+        layout: {
+          visible: true,
+          repeatContainerFormat: "NOHEADER",
+          fieldListID: ".NIGORequirementList",
+          referenceType: "List",
+          rows: [
+            {
+              groups: [
+                {
+                  view: {
+                    reference: "NIGORequirementList(1)",
+                    groups: [
+                      {
+                        layout: {
+                          groups: [
+                            {
+                              layout: {
+                                groups: [
+                                  {
+                                    field: {
+                                      control: {
+                                        label: "Claimant Statement"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "RequirementDetail",
+                    value: "BENETESTINTRTEREL05  TESTBENELASTNAME"
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "NIGOCorrectionDetails",
+                    value: ""
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "DocumentStatus",
+                    value: ""
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "WorkBenchStatus",
+                    value: "Ordered"
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "BeneficiaryComments",
+                    value: ""
+                  }
+                }
+              ]
             },
-            children: [
-              {
-                name: "A",
-                type: "Region",
-                children: [
-                  {
-                    type: "Text",
-                    config: {
-                      label: "@L View is not yet defined for this step.",
-                      readOnly: "true",
-                    },
-                  },
-                ],
-              },
-            ],
-            classID: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
-          },
-        ],
-      },
-      fields: {
-        pyLabel: [
-          {
-            classID: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
-            type: "Text",
-            displayAs: "pxTextInput",
-            definedOnClassID: "Work-",
-            label: "Label",
-          },
-        ],
-        pyID: [
-          {
-            classID: "AIG-LR-Life-CLM-Work-ClaimUnit-Life-Beneficiary",
-            type: "Text",
-            maxLength: 32,
-            displayAs: "pxDisplayText",
-            definedOnClassID: "Work-Cover-",
-            expectedLength: 22,
-            label: "Case ID",
-            isClassKey: true,
-          },
-        ],
-      },
-    },
-    components: ["OneColumn", "Region", "Text", "View"],
-    localeReferences: ["WORK-!VIEW!PYACTIONSTUB"],
-    root: {
-      type: "reference",
-      config: {
-        type: "view",
-        name: "pyActionStub",
-        context: "caseInfo.content",
-      },
-    },
-    context_data: {},
-    settings: {
-      autoSave: false,
-    },
-    actionButtons: {
-      secondary: [
-        {
-          jsAction: "cancelAssignment",
-          name: "Cancel",
-          actionID: "cancel",
-        },
-        {
-          jsAction: "saveAssignment",
-          name: "Save for later",
-          actionID: "save",
-        },
-      ],
-      main: [
-        {
-          jsAction: "finishAssignment",
-          name: "Submit",
-          actionID: "submit",
-        },
-      ],
-    },
-  },
+            {
+              groups: [
+                {
+                  view: {
+                    reference: "NIGORequirementList(2)",
+                    groups: [
+                      {
+                        layout: {
+                          groups: [
+                            {
+                              layout: {
+                                groups: [
+                                  {
+                                    field: {
+                                      control: {
+                                        label: "Obituary"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "RequirementDetail",
+                    value: "BOERIC INTRTDEC"
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "NIGOCorrectionDetails",
+                    value: ""
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "DocumentStatus",
+                    value: ""
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "WorkBenchStatus",
+                    value: "Ordered"
+                  }
+                },
+                {
+                  field: {
+                    fieldID: "BeneficiaryComments",
+                    value: ""
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -884,9 +948,58 @@ const handleMockRequest = async (input, options = {}) => {
           .replace("ASSIGN-WORKBASKET ", "")
           .split("!")[0]
       : "AIG-LR-LIFE-CLM-WORK BU-21393";
-    const insName = caseKey.split(" ").pop() || "BU-21393";
     return jsonResponse({
-      caseInfo: mockCaseInfo(caseKey, insName),
+      caseID: caseKey.includes(" ") ? caseKey : `AIG-LR-LIFE-CLM-WORK ${caseKey}`,
+      ID: `ASSIGN-WORKBASKET ${caseKey.includes(" ") ? caseKey : `AIG-LR-LIFE-CLM-WORK ${caseKey}`}!REQUIREMENTSFULFILLMENT`,
+      instructions: "Awaiting Fulfillment",
+      name: "Claimant, Beneficiary (BENETESTINTRTEREL05  TESTBENELASTNAME)",
+      pxObjClass: "Pega-API-CaseManagement-Assignment",
+      routedTo: "CMCAwaitingFulfillmentQueue",
+      type: "Workbasket",
+      urgency: "50",
+      actionButtons: {
+        pxObjClass: "Pega-API-CaseManagement-Assignment",
+        main: [
+          {
+            actionID: "submit",
+            jsAction: "finishAssignment",
+            name: "Submit",
+            pxObjClass: "Pega-API-CaseManagement-Assignment",
+          },
+        ],
+        secondary: [
+          {
+            actionID: "cancel",
+            jsAction: "cancelAssignment",
+            name: "Cancel",
+            pxObjClass: "Pega-API-CaseManagement-Assignment",
+          },
+          {
+            actionID: "save",
+            jsAction: "saveAssignment",
+            name: "Save for later",
+            pxObjClass: "Pega-API-CaseManagement-Assignment",
+            links: {
+              pxObjClass: "Embed-Hateoas-Link",
+              open: {
+                href: `assignments/ASSIGN-WORKBASKET ${caseKey}!REQUIREMENTSFULFILLMENT?actionID=AwaitingFulfillment&saveOnly=true`,
+                pxObjClass: "Embed-Hateoas-Link",
+                rel: "self",
+                title: "Save",
+                type: "POST",
+              },
+            },
+          },
+        ],
+      },
+      actions: [
+        {
+          ID: "AwaitingFulfillment",
+          name: "Awaiting Fulfillment",
+          pxObjClass: "Pega-API-CaseManagement-Action",
+          type: "Assignment",
+        },
+      ],
     });
   }
 

@@ -794,8 +794,23 @@ export default function App() {
           "Failed to load assignment details.",
         );
 
-        const data = result.caseInfo || result.data?.caseInfo || {};
+        const caseID = result.caseID || result.caseInfo?.ID || caseRef;
         setAssignmentId(assignmentId);
+
+        // Fetch case details using caseID to get claim information
+        let caseDetails = {};
+        try {
+          const caseResponse = await fetch(
+            `${API_BASE}/cases/${encodeId(caseID)}?viewType=page`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          if (caseResponse.ok) {
+            const caseResult = await caseResponse.json();
+            caseDetails = caseResult?.caseInfo || caseResult?.data?.caseInfo || {};
+          }
+        } catch (e) {
+          console.warn("Failed to fetch case details:", e);
+        }
 
         // 2. Fetch assignment action view (v1 endpoint)
         let requirements = [];
@@ -811,64 +826,127 @@ export default function App() {
 
         if (metaResponse.ok) {
           const metaResult = await metaResponse.json();
-          const actionContent = metaResult?.data?.caseInfo?.content || metaResult?.caseInfo?.content || {};
-          const rawList =
-            actionContent.NIGORequirementList ||
-            actionContent.NIGORequirementLists ||
-            actionContent.RequirementLists ||
-            actionContent.RequirementList ||
-            actionContent.Requirements ||
-            actionContent.pyRequirementLists ||
-            actionContent.pyRequirements ||
-            data.content?.NIGORequirementList ||
-            data.content?.RequirementLists ||
-            data.content?.Requirements ||
-            data.requirements ||
-            [];
 
-          if (Array.isArray(rawList) && rawList.length > 0) {
-            requirements = rawList.map((r) => ({
-              name:
-                r.pyRequirementName ||
-                r.RequirementName ||
-                r.Requirement ||
-                r.pyLabel ||
-                r.name ||
-                "",
-              detail:
-                r.pyRequirementDetail ||
-                r.RequirementDetail ||
-                r.RequirementDescription ||
-                r.detail ||
-                r.Description ||
-                "",
-              correction:
-                r.pyCorrectionDetails ||
-                r.CorrectionDetails ||
-                r.NIGOCorrectionDetails ||
-                r.correction ||
-                r.pyMessage ||
-                "",
-              documentStatus:
-                r.pyDocumentStatus ||
-                r.DocumentStatus ||
-                r.documentStatus ||
-                r.pyStatus ||
-                "",
-              workbenchStatus:
-                r.pyWorkbenchStatus ||
-                r.WorkbenchStatus ||
-                r.workbenchStatus ||
-                r.pyStatusWork ||
-                "",
-            }));
+          // Try parsing from response.view.groups layout structure
+          const rows = metaResult?.view?.groups?.[1]?.layout?.rows || [];
+          if (Array.isArray(rows) && rows.length > 0) {
+            requirements = rows.map((row) => {
+              const cols = row.groups || [];
+              let name = "";
+              const col0 = cols[0];
+              if (col0) {
+                const getLinkLabel = (obj) => {
+                  if (!obj) return "";
+                  if (obj.control?.label) return obj.control.label;
+                  if (obj.field?.control?.label) return obj.field.control.label;
+                  if (Array.isArray(obj.groups)) {
+                    for (const g of obj.groups) {
+                      const res = getLinkLabel(g);
+                      if (res) return res;
+                    }
+                  }
+                  if (obj.layout?.groups) {
+                    for (const g of obj.layout.groups) {
+                      const res = getLinkLabel(g);
+                      if (res) return res;
+                    }
+                  }
+                  if (obj.layout) {
+                    const res = getLinkLabel(obj.layout);
+                    if (res) return res;
+                  }
+                  if (obj.view) {
+                    const res = getLinkLabel(obj.view);
+                    if (res) return res;
+                  }
+                  return "";
+                };
+                name = getLinkLabel(col0);
+              }
+
+              const findFieldValue = (fieldId) => {
+                for (const col of cols) {
+                  if (col?.field?.fieldID === fieldId) {
+                    return col.field.value || "";
+                  }
+                }
+                return "";
+              };
+
+              const detail = findFieldValue("RequirementDetail");
+              const correction = findFieldValue("NIGOCorrectionDetails");
+              const documentStatus = findFieldValue("DocumentStatus");
+              const workbenchStatus = findFieldValue("WorkBenchStatus");
+
+              return {
+                name,
+                detail,
+                correction,
+                documentStatus,
+                workbenchStatus,
+              };
+            });
+          } else {
+            // Fallback to flat/raw content parsing
+            const actionContent = metaResult?.data?.caseInfo?.content || metaResult?.caseInfo?.content || {};
+            const rawList =
+              actionContent.NIGORequirementList ||
+              actionContent.NIGORequirementLists ||
+              actionContent.RequirementLists ||
+              actionContent.RequirementList ||
+              actionContent.Requirements ||
+              actionContent.pyRequirementLists ||
+              actionContent.pyRequirements ||
+              caseDetails.content?.NIGORequirementList ||
+              caseDetails.content?.RequirementLists ||
+              caseDetails.content?.Requirements ||
+              caseDetails.requirements ||
+              [];
+
+            if (Array.isArray(rawList) && rawList.length > 0) {
+              requirements = rawList.map((r) => ({
+                name:
+                  r.pyRequirementName ||
+                  r.RequirementName ||
+                  r.Requirement ||
+                  r.pyLabel ||
+                  r.name ||
+                  "",
+                detail:
+                  r.pyRequirementDetail ||
+                  r.RequirementDetail ||
+                  r.RequirementDescription ||
+                  r.detail ||
+                  r.Description ||
+                  "",
+                correction:
+                  r.pyCorrectionDetails ||
+                  r.CorrectionDetails ||
+                  r.NIGOCorrectionDetails ||
+                  r.correction ||
+                  r.pyMessage ||
+                  "",
+                documentStatus:
+                  r.pyDocumentStatus ||
+                  r.DocumentStatus ||
+                  r.documentStatus ||
+                  r.pyStatus ||
+                  "",
+                workbenchStatus:
+                  r.pyWorkbenchStatus ||
+                  r.WorkbenchStatus ||
+                  r.workbenchStatus ||
+                  r.pyStatusWork ||
+                  "",
+              }));
+            }
           }
         }
 
         const mergedCaseData = {
-          ...data,
-          businessID: data.businessID || caseItem.pxRefObjectInsName || caseItem.pxRefObjectKey?.split(" ").pop() || "",
-          ID: data.ID || caseRef,
+          ...caseDetails,
+          businessID: caseDetails.businessID || caseItem.pxRefObjectInsName || caseItem.pxRefObjectKey?.split(" ").pop() || "",
+          ID: caseDetails.ID || caseID || caseRef,
           requirements,
           assignments: [
             {
