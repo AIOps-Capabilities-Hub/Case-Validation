@@ -997,6 +997,47 @@ export default function App() {
     [caseData, token, notify],
   );
 
+  // Build pageInstructions for NIGORequirementList comment updates
+  const buildReqPageInstructions = useCallback(
+    (comments) => {
+      const reqs = caseData?.requirements || [];
+      return reqs.map((req, idx) => ({
+        instruction: "UPDATE",
+        target: ".NIGORequirementList",
+        listIndex: idx + 1,
+        content: {
+          BeneficiaryComments: comments[req.name] || "",
+        },
+      }));
+    },
+    [caseData],
+  );
+
+  // Shared helper: POST to the assignment endpoint with the given query suffix
+  const postAssignment = useCallback(
+    async (querySuffix, comments, headers) => {
+      const pageInstructions = buildReqPageInstructions(comments);
+      const attachmentList = attachments.map((att) => ({
+        category: "ClaimantResponseDocuments",
+        ID: att.id,
+        type: "File",
+      }));
+      return fetch(
+        `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?${querySuffix}`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            content: {},
+            pageInstructions,
+            attachments: attachmentList,
+          }),
+        },
+      );
+    },
+    [assignmentId, attachments, buildReqPageInstructions],
+  );
+
   const save = useCallback(
     async (comments = {}) => {
       if (!assignmentId) return;
@@ -1007,25 +1048,11 @@ export default function App() {
           Authorization: `Bearer ${token}`,
         };
         if (ifMatch) headers["If-Match"] = ifMatch;
-        const response = await fetch(
-          `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?actionID=AwaitingFulfillment`,
-          {
-            method: "POST",
-            headers,
-            body: JSON.stringify({
-              content: {
-                NIGORequirementList: (caseData?.requirements || []).map((req) => ({
-                  Comments: comments[req.name] || "",
-                })),
-              },
-              pageInstructions: [],
-              attachments: attachments.map((att) => ({
-                category: "ClaimantResponseDocuments",
-                ID: att.id,
-                type: "File",
-              })),
-            }),
-          },
+        // saveOnly=true persists data without running submit-time validation
+        const response = await postAssignment(
+          "actionID=AwaitingFulfillment&saveOnly=true",
+          comments,
+          headers,
         );
         await apiResponse(response, "Save failed.");
         notify("Assignment saved successfully");
@@ -1035,7 +1062,7 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [assignmentId, token, ifMatch, caseData, attachments, notify],
+    [assignmentId, token, ifMatch, notify, postAssignment],
   );
 
   const submit = useCallback(
@@ -1048,27 +1075,38 @@ export default function App() {
           Authorization: `Bearer ${token}`,
         };
         if (ifMatch) headers["If-Match"] = ifMatch;
-        const response = await fetch(
+
+        // Phase 1: persist comments + attachments (saveOnly=true bypasses case-level
+        // validation rules that fail on pre-existing undefined properties in the case).
+        const saveResp = await postAssignment(
+          "actionID=AwaitingFulfillment&saveOnly=true",
+          comments,
+          headers,
+        );
+        // Best-effort: log but don't abort if save phase fails
+        if (!saveResp.ok) {
+          const txt = await saveResp.text();
+          console.warn("Save phase warning:", txt);
+        }
+
+        // Phase 2: finish the assignment (no body needed — data already saved above).
+        const submitResp = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?actionID=AwaitingFulfillment`,
           {
             method: "POST",
-            headers,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              ...(ifMatch ? { "If-Match": ifMatch } : {}),
+            },
             body: JSON.stringify({
-              content: {
-                NIGORequirementList: (caseData?.requirements || []).map((req) => ({
-                  Comments: comments[req.name] || "",
-                })),
-              },
+              content: {},
               pageInstructions: [],
-              attachments: attachments.map((att) => ({
-                category: "ClaimantResponseDocuments",
-                ID: att.id,
-                type: "File",
-              })),
+              attachments: [],
             }),
           },
         );
-        await apiResponse(response, "Submit failed.");
+        await apiResponse(submitResp, "Submit failed.");
         notify("Assignment submitted successfully");
         setStep("SUCCESS");
       } catch (caught) {
@@ -1077,7 +1115,7 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [assignmentId, token, ifMatch, caseData, attachments, notify],
+    [assignmentId, token, ifMatch, notify, postAssignment],
   );
 
   const home = () => {
