@@ -5,7 +5,9 @@ const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_CLIENT_SECRET;
 const TOKEN_URL = import.meta.env.VITE_TOKEN_URL;
 const API_BASE = import.meta.env.VITE_API_BASE;
-const ASSIGN_BASE = import.meta.env.VITE_ASSIGNMENT_API_BASE || API_BASE;
+const NEW_ASSIGN_BASE = import.meta.env.VITE_NEW_ASSIGN_BASE || API_BASE;
+const UPLOAD_BASE = import.meta.env.VITE_UPLOAD_BASE || API_BASE;
+
 const isMockMode = [true, "true", "1", "yes"].includes(
   import.meta.env.VITE_MOCK_MODE,
 );
@@ -77,19 +79,399 @@ function Toast({ message, type }) {
 
 function Landing({ onStart }) {
   return (
-    <main className="landing">
-      <section className="landing-card">
-        <div className="eyebrow">CASE VALIDATION</div>
-        <h1>Beneficiary fulfillment</h1>
-        <p>
-          Review outstanding claim requirements and submit the completed
-          fulfillment package.
+    <div
+      className="fade-in"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        backgroundColor: "#f3f4f6",
+      }}
+    >
+      {/* Header */}
+      <header
+        style={{
+          backgroundColor: "#1e0936",
+          color: "#fff",
+          padding: "16px 40px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#8b5cf6",
+              color: "#fff",
+              fontWeight: "bold",
+              padding: "8px 12px",
+              fontSize: "14px",
+              letterSpacing: "1px",
+              width: "36px",
+              height: "36px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            CB
+          </div>
+          <div>
+            <div
+              style={{
+                fontWeight: "700",
+                fontSize: "16px",
+                letterSpacing: "0.5px",
+              }}
+            >
+              Corebridge Financial
+            </div>
+            <div
+              style={{
+                fontSize: "10px",
+                color: "#d8b4fe",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+              }}
+            >
+              Policy Center
+            </div>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "24px",
+            fontSize: "13px",
+            fontWeight: "600",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              backgroundColor: "#8b5cf6",
+              padding: "6px 14px",
+              borderRadius: "20px",
+              cursor: "pointer",
+            }}
+          >
+            HOME
+          </span>
+          <span style={{ color: "#d8b4fe", cursor: "pointer" }}>
+            SELF-SERVICE
+          </span>
+          <span style={{ color: "#d8b4fe", cursor: "pointer" }}>
+            TRACK REQUEST
+          </span>
+        </div>
+      </header>
+
+      {/* Search Bar Section */}
+      <div
+        style={{
+          background: "linear-gradient(180deg, #1e0936 0%, #3b0764 100%)",
+          padding: "50px 20px 60px",
+          textAlign: "center",
+          color: "#fff",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "600px",
+            margin: "0 auto 16px",
+            position: "relative",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Search by policy number, name, or policy type..."
+            style={{
+              width: "100%",
+              padding: "14px 100px 14px 20px",
+              borderRadius: "30px",
+              border: "none",
+              outline: "none",
+              fontSize: "14px",
+              color: "#333",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            }}
+            disabled
+          />
+          <button
+            style={{
+              position: "absolute",
+              right: "6px",
+              top: "5px",
+              background: "#6b21a8",
+              color: "#fff",
+              border: "none",
+              borderRadius: "20px",
+              padding: "8px 20px",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "not-allowed",
+            }}
+          >
+            Search
+          </button>
+        </div>
+        <div style={{ fontSize: "12px", color: "#d8b4fe" }}>
+          Try: <span style={{ fontWeight: "bold" }}>POL-100234</span>,{" "}
+          <span style={{ fontWeight: "bold" }}>Ava Thompson</span>, or{" "}
+          <span style={{ fontWeight: "bold" }}>Health Insurance</span>
+        </div>
+      </div>
+
+      {/* Self-service Content */}
+      <div
+        style={{
+          flexGrow: 1,
+          padding: "50px 40px",
+          maxWidth: "1200px",
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
+        <h2
+          style={{
+            textAlign: "center",
+            color: "#1e1b4b",
+            fontSize: "24px",
+            fontWeight: "700",
+            marginBottom: "8px",
+          }}
+        >
+          Self-service, on your terms
+        </h2>
+        <p
+          style={{
+            textAlign: "center",
+            color: "#6b7280",
+            fontSize: "14px",
+            marginBottom: "40px",
+          }}
+        >
+          Handle the most common policy requests online, 24/7 — no phone
+          calls required.
         </p>
-        <button className="primary-button" onClick={onStart}>
-          Open Awaiting Fulfillment
-        </button>
-      </section>
-    </main>
+
+        {/* Grid layout matching Corebridge cards */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: "24px",
+            justifyContent: "center",
+            alignItems: "stretch",
+          }}
+        >
+          {/* Card 1: Address Change (static/disabled) */}
+          <div
+            className="card"
+            style={{
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              opacity: 0.8,
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              border: "1px solid #e5e7eb",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "16px",
+                fontWeight: "700",
+                color: "#111827",
+                marginBottom: "8px",
+              }}
+            >
+              Address Change
+            </h3>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                flexGrow: 1,
+                lineHeight: "1.5",
+                marginBottom: "20px",
+              }}
+            >
+              Update the mailing or residential address linked to your policy.
+            </p>
+            <div
+              style={{
+                color: "#a855f7",
+                fontSize: "12px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
+              GET STARTED →
+            </div>
+          </div>
+
+          {/* Card 2: Death Claim (static/disabled) */}
+          <div
+            className="card"
+            style={{
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              opacity: 0.8,
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              border: "1px solid #e5e7eb",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "16px",
+                fontWeight: "700",
+                color: "#111827",
+                marginBottom: "8px",
+              }}
+            >
+              Death Claim
+            </h3>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                flexGrow: 1,
+                lineHeight: "1.5",
+                marginBottom: "20px",
+              }}
+            >
+              Initiate a death claim for a life insurance policy on behalf of a beneficiary.
+            </p>
+            <div
+              style={{
+                color: "#a855f7",
+                fontSize: "12px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
+              GET STARTED →
+            </div>
+          </div>
+
+          {/* Card 3: Active Awaiting Fulfillment */}
+          <div
+            className="card"
+            onClick={onStart}
+            style={{
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              cursor: "pointer",
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              border: "2px solid #a855f7",
+              boxShadow: "0 10px 20px rgba(168, 85, 247, 0.15)",
+              transform: "translateY(-4px)",
+              transition: "transform 0.2s, box-shadow 0.2s",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "16px",
+                fontWeight: "700",
+                color: "#111827",
+                marginBottom: "8px",
+              }}
+            >
+              Awaiting Fulfillment
+            </h3>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                flexGrow: 1,
+                lineHeight: "1.5",
+                marginBottom: "20px",
+              }}
+            >
+              Review outstanding claim requirements and submit the completed fulfillment package.
+            </p>
+            <div
+              style={{
+                color: "#a855f7",
+                fontSize: "12px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
+              GET STARTED →
+            </div>
+          </div>
+
+          {/* Card 4: Premium Payment Update (static/disabled) */}
+          <div
+            className="card"
+            style={{
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+              opacity: 0.8,
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              border: "1px solid #e5e7eb",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "16px",
+                fontWeight: "700",
+                color: "#111827",
+                marginBottom: "8px",
+              }}
+            >
+              Premium Payment Update
+            </h3>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "#6b7280",
+                flexGrow: 1,
+                lineHeight: "1.5",
+                marginBottom: "20px",
+              }}
+            >
+              Change your premium payment method, frequency, or bank details.
+            </p>
+            <div
+              style={{
+                color: "#a855f7",
+                fontSize: "12px",
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
+              GET STARTED →
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -122,12 +504,11 @@ function CaseList({ cases, onSelect, onBack }) {
         </div>
         <div className="case-list">
           {filtered.map((item) => {
-            const id = item.pxRefObjectKey || item.pxRefObjectInsName;
             return (
               <button
                 className="case-row"
                 key={item.pzInsKey}
-                onClick={() => onSelect(id)}
+                onClick={() => onSelect(item)}
               >
                 <span className="case-row-main">
                   <strong>{item.pxRefObjectInsName}</strong>
@@ -326,7 +707,6 @@ export default function App() {
   const [cases, setCases] = useState([]);
   const [caseData, setCaseData] = useState(null);
   const [assignmentId, setAssignmentId] = useState("");
-  const [actionId, setActionId] = useState("");
   const [ifMatch, setIfMatch] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -396,94 +776,109 @@ export default function App() {
   }, [authenticate, getCases, notify]);
 
   const selectCase = useCallback(
-    async (caseRef) => {
+    async (caseItem) => {
       setStep("LOADING");
       setError("");
       setAttachments([]);
       try {
-        // 1. Fetch case details
+        const assignmentId = caseItem.pzInsKey;
+        const caseRef = caseItem.pxRefObjectKey || caseItem.pxRefObjectInsName;
+
+        // 1. Fetch assignment details (v1 endpoint)
         const response = await fetch(
-          `${API_BASE}/cases/${encodeId(caseRef)}?viewType=page`,
+          `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         const result = await apiResponse(
           response,
-          "Failed to load case details.",
+          "Failed to load assignment details.",
         );
-        const data = result.data.caseInfo;
-        const assignment = data.assignments?.[0];
-        const action = assignment?.actions?.[0];
-        setAssignmentId(assignment?.ID || "");
-        setActionId(action?.ID || "");
 
-        // 2. Fetch assignment action view
+        const data = result.caseInfo || result.data?.caseInfo || {};
+        setAssignmentId(assignmentId);
+
+        // 2. Fetch assignment action view (v1 endpoint)
         let requirements = [];
-        if (assignment?.ID && action?.ID) {
-          const metaResponse = await fetch(
-            `${ASSIGN_BASE}/assignments/${encodeId(assignment.ID)}/actions/${action.ID}?viewType=form`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-          setIfMatch(
-            metaResponse.headers.get("If-Match") ||
-              metaResponse.headers.get("ETag") ||
-              "",
-          );
-          if (metaResponse.ok) {
-            const metaResult = await metaResponse.json();
-            const actionContent = metaResult?.data?.caseInfo?.content || {};
-            const rawList =
-              actionContent.RequirementLists ||
-              actionContent.RequirementList ||
-              actionContent.Requirements ||
-              actionContent.pyRequirementLists ||
-              actionContent.pyRequirements ||
-              data.content?.RequirementLists ||
-              data.content?.Requirements ||
-              data.requirements ||
-              [];
+        const metaResponse = await fetch(
+          `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/AwaitingFulfillment`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        setIfMatch(
+          metaResponse.headers.get("If-Match") ||
+            metaResponse.headers.get("ETag") ||
+            "",
+        );
 
-            if (Array.isArray(rawList) && rawList.length > 0) {
-              requirements = rawList.map((r) => ({
-                name:
-                  r.pyRequirementName ||
-                  r.RequirementName ||
-                  r.Requirement ||
-                  r.pyLabel ||
-                  r.name ||
-                  "",
-                detail:
-                  r.pyRequirementDetail ||
-                  r.RequirementDetail ||
-                  r.RequirementDescription ||
-                  r.detail ||
-                  r.Description ||
-                  "",
-                correction:
-                  r.pyCorrectionDetails ||
-                  r.CorrectionDetails ||
-                  r.NIGOCorrectionDetails ||
-                  r.correction ||
-                  r.pyMessage ||
-                  "",
-                documentStatus:
-                  r.pyDocumentStatus ||
-                  r.DocumentStatus ||
-                  r.documentStatus ||
-                  r.pyStatus ||
-                  "",
-                workbenchStatus:
-                  r.pyWorkbenchStatus ||
-                  r.WorkbenchStatus ||
-                  r.workbenchStatus ||
-                  r.pyStatusWork ||
-                  "",
-              }));
-            }
+        if (metaResponse.ok) {
+          const metaResult = await metaResponse.json();
+          const actionContent = metaResult?.data?.caseInfo?.content || metaResult?.caseInfo?.content || {};
+          const rawList =
+            actionContent.NIGORequirementList ||
+            actionContent.NIGORequirementLists ||
+            actionContent.RequirementLists ||
+            actionContent.RequirementList ||
+            actionContent.Requirements ||
+            actionContent.pyRequirementLists ||
+            actionContent.pyRequirements ||
+            data.content?.NIGORequirementList ||
+            data.content?.RequirementLists ||
+            data.content?.Requirements ||
+            data.requirements ||
+            [];
+
+          if (Array.isArray(rawList) && rawList.length > 0) {
+            requirements = rawList.map((r) => ({
+              name:
+                r.pyRequirementName ||
+                r.RequirementName ||
+                r.Requirement ||
+                r.pyLabel ||
+                r.name ||
+                "",
+              detail:
+                r.pyRequirementDetail ||
+                r.RequirementDetail ||
+                r.RequirementDescription ||
+                r.detail ||
+                r.Description ||
+                "",
+              correction:
+                r.pyCorrectionDetails ||
+                r.CorrectionDetails ||
+                r.NIGOCorrectionDetails ||
+                r.correction ||
+                r.pyMessage ||
+                "",
+              documentStatus:
+                r.pyDocumentStatus ||
+                r.DocumentStatus ||
+                r.documentStatus ||
+                r.pyStatus ||
+                "",
+              workbenchStatus:
+                r.pyWorkbenchStatus ||
+                r.WorkbenchStatus ||
+                r.workbenchStatus ||
+                r.pyStatusWork ||
+                "",
+            }));
           }
         }
 
-        data.requirements = requirements;
-        setCaseData(data);
+        const mergedCaseData = {
+          ...data,
+          businessID: data.businessID || caseItem.pxRefObjectInsName || caseItem.pxRefObjectKey?.split(" ").pop() || "",
+          ID: data.ID || caseRef,
+          requirements,
+          assignments: [
+            {
+              ID: assignmentId,
+              actions: [{ ID: "AwaitingFulfillment" }]
+            }
+          ]
+        };
+
+        setCaseData(mergedCaseData);
         setStep("CASE_DETAIL");
       } catch (caught) {
         setError(caught.message);
@@ -503,7 +898,7 @@ export default function App() {
         form.append("contextId", caseData.ID);
         form.append("category", "BeneficiaryAttachmentList");
         form.append("appendUniqueIdToFileName", "true");
-        const response = await fetch(`${API_BASE}/attachments/upload`, {
+        const response = await fetch(`${UPLOAD_BASE}/attachments/upload`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: form,
@@ -526,7 +921,7 @@ export default function App() {
 
   const save = useCallback(
     async (comments = {}) => {
-      if (!assignmentId || !actionId) return;
+      if (!assignmentId) return;
       setSubmitting(true);
       try {
         const headers = {
@@ -535,18 +930,22 @@ export default function App() {
         };
         if (ifMatch) headers["If-Match"] = ifMatch;
         const response = await fetch(
-          `${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}`,
+          `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?actionID=AwaitingFulfillment`,
           {
-            method: "PATCH",
+            method: "POST",
             headers,
             body: JSON.stringify({
               content: {
-                Comments:
-                  Object.entries(comments)
-                    .filter(([_, v]) => Boolean(v))
-                    .map(([k, v]) => `${k}: ${v}`)
-                    .join("\n") || "",
+                NIGORequirementList: (caseData?.requirements || []).map((req) => ({
+                  Comments: comments[req.name] || "",
+                })),
               },
+              pageInstructions: [],
+              attachments: attachments.map((att) => ({
+                category: "ClaimantResponseDocuments",
+                ID: att.id,
+                type: "File",
+              })),
             }),
           },
         );
@@ -558,12 +957,12 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [assignmentId, actionId, token, ifMatch, notify],
+    [assignmentId, token, ifMatch, caseData, attachments, notify],
   );
 
   const submit = useCallback(
     async (comments = {}) => {
-      if (!assignmentId || !actionId) return;
+      if (!assignmentId) return;
       setSubmitting(true);
       try {
         const headers = {
@@ -572,18 +971,22 @@ export default function App() {
         };
         if (ifMatch) headers["If-Match"] = ifMatch;
         const response = await fetch(
-          `${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}`,
+          `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?actionID=AwaitingFulfillment`,
           {
-            method: "PATCH",
+            method: "POST",
             headers,
             body: JSON.stringify({
               content: {
-                Comments:
-                  Object.entries(comments)
-                    .filter(([_, v]) => Boolean(v))
-                    .map(([k, v]) => `${k}: ${v}`)
-                    .join("\n") || "",
+                NIGORequirementList: (caseData?.requirements || []).map((req) => ({
+                  Comments: comments[req.name] || "",
+                })),
               },
+              pageInstructions: [],
+              attachments: attachments.map((att) => ({
+                category: "ClaimantResponseDocuments",
+                ID: att.id,
+                type: "File",
+              })),
             }),
           },
         );
@@ -596,7 +999,7 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [assignmentId, actionId, token, ifMatch, notify],
+    [assignmentId, token, ifMatch, caseData, attachments, notify],
   );
 
   const home = () => {

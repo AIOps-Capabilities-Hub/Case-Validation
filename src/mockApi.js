@@ -872,6 +872,24 @@ const handleMockRequest = async (input, options = {}) => {
     });
   }
 
+  // ── Assignment details GET ──────────────────────────────────────────────
+  if (
+    method === "GET" &&
+    url.includes("/assignments/") &&
+    !url.includes("/actions/")
+  ) {
+    const asgMatch = url.match(/\/assignments\/([^/]+)/);
+    const caseKey = asgMatch
+      ? decodeURIComponent(asgMatch[1])
+          .replace("ASSIGN-WORKBASKET ", "")
+          .split("!")[0]
+      : "AIG-LR-LIFE-CLM-WORK BU-21393";
+    const insName = caseKey.split(" ").pop() || "BU-21393";
+    return jsonResponse({
+      caseInfo: mockCaseInfo(caseKey, insName),
+    });
+  }
+
   // ── Assignment view GET ─────────────────────────────────────────────────
   if (
     method === "GET" &&
@@ -890,11 +908,10 @@ const handleMockRequest = async (input, options = {}) => {
     });
   }
 
-  // ── Assignment action POST (submit) ────────────────────────────────────
+  // ── Assignment submit/save POST ─────────────────────────────────────────
   if (
     method === "POST" &&
     url.includes("/assignments/") &&
-    url.includes("/actions/") &&
     !url.includes("/attachments/")
   ) {
     return jsonResponse({
@@ -904,19 +921,6 @@ const handleMockRequest = async (input, options = {}) => {
           status: "Resolved-Fulfilled",
           assignments: [],
         },
-      },
-    });
-  }
-
-  // ── Assignment action PATCH (save) ─────────────────────────────────────
-  if (
-    method === "PATCH" &&
-    url.includes("/assignments/") &&
-    url.includes("/actions/")
-  ) {
-    return jsonResponse({
-      data: {
-        caseInfo: mockCaseInfo(),
       },
     });
   }
