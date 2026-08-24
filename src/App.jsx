@@ -147,38 +147,6 @@ function CaseList({ cases, onSelect, onBack }) {
   );
 }
 
-const defaultRequirements = [
-  {
-    name: "Claimant Statement",
-    detail: "FJVWPMR EANWTWUG",
-    correction:
-      "The Claimant Statement Submitted Lists The Deceased Insured As BEVERLY SHARRETT; However, The Name On The Claim File Is JXISVGD E QTFZXIRD. These Names Do Not Match. Please Confirm That The Correct Claimant Statement Has Been Submitted For This Claim. If The Form Was Submitted In Error, Please Resubmit A Completed And Signed Claimant Statement Referencing The Correct Insured. If The Insured Is Known By Multiple Names, Please Provide Documentation Supporting The Name Used On The Form.",
-    documentStatus: "Pending",
-    workbenchStatus: "NIGO",
-  },
-  {
-    name: "Obituary",
-    detail: "JXISVGD E QTFZXIRD",
-    correction: "",
-    documentStatus: "Pending",
-    workbenchStatus: "Open",
-  },
-  {
-    name: "Proof of Death-non FL - Certified DC",
-    detail: "JXISVGD E QTFZXIRD",
-    correction: "",
-    documentStatus: "Pending",
-    workbenchStatus: "Open",
-  },
-  {
-    name: "Original Policy",
-    detail: "YME2008991",
-    correction: "",
-    documentStatus: "Pending",
-    workbenchStatus: "Open",
-  },
-];
-
 function RequirementRow({ item, comment, onComment }) {
   return (
     <div className="requirement-row">
@@ -215,9 +183,8 @@ function CaseDetail({
   const inputRef = useRef(null);
   const [comments, setComments] = useState({});
   const content = caseData?.content || {};
-  const requirements = caseData?.requirements?.length
-    ? caseData.requirements
-    : defaultRequirements;
+  // Requirements are normalized and set in selectCase from the assignment action response
+  const requirements = caseData?.requirements || [];
   const assignment = caseData?.assignments?.[0];
   const action = assignment?.actions?.[0];
 
@@ -231,22 +198,22 @@ function CaseDetail({
   const claimType = contentValue(
     content,
     ["claimType", "ClaimType", "pyClaimType"],
-    "Death Claim",
+    "",
   );
   const claimSubType = contentValue(
     content,
     ["claimSubType", "ClaimSubType", "pyClaimSubType"],
-    "Regular",
+    "",
   );
   const claimSource = contentValue(
     content,
     ["claimSource", "ClaimSource", "pyClaimSource"],
-    "Call",
+    "",
   );
   const deathDate = contentValue(
     content,
     ["dateOfDeath", "DateOfDeath", "pyDateOfDeath"],
-    "05/01/2026",
+    "",
   );
 
   return (
@@ -256,7 +223,7 @@ function CaseDetail({
           ← Back
         </button>
         <div className="case-reference">
-          {caseData?.businessID || caseData?.ID}
+          {caseData?.businessID || caseData?.ID || ""}
         </div>
       </div>
 
@@ -277,7 +244,7 @@ function CaseDetail({
           </div>
           <div>
             <span>Date of Death</span>
-            <strong>{dateValue(deathDate, "05/01/2026")}</strong>
+            <strong>{dateValue(deathDate, "")}</strong>
           </div>
         </div>
       </section>
@@ -335,14 +302,14 @@ function CaseDetail({
         <div>
           <button
             className="outline-button save-button"
-            onClick={onSave}
+            onClick={() => onSave(comments)}
             disabled={!action || submitting}
           >
             SAVE
           </button>
           <button
             className="primary-button submit-button"
-            onClick={onSubmit}
+            onClick={() => onSubmit(comments)}
             disabled={!action || submitting}
           >
             {submitting ? "SUBMITTING…" : "SUBMIT"}
@@ -434,6 +401,7 @@ export default function App() {
       setError("");
       setAttachments([]);
       try {
+        // 1. Fetch case details
         const response = await fetch(
           `${API_BASE}/cases/${encodeId(caseRef)}?viewType=page`,
           { headers: { Authorization: `Bearer ${token}` } },
@@ -443,22 +411,79 @@ export default function App() {
           "Failed to load case details.",
         );
         const data = result.data.caseInfo;
-        setCaseData(data);
         const assignment = data.assignments?.[0];
         const action = assignment?.actions?.[0];
         setAssignmentId(assignment?.ID || "");
         setActionId(action?.ID || "");
+
+        // 2. Fetch assignment action view
+        let requirements = [];
         if (assignment?.ID && action?.ID) {
-          const metadataResponse = await fetch(
+          const metaResponse = await fetch(
             `${ASSIGN_BASE}/assignments/${encodeId(assignment.ID)}/actions/${action.ID}?viewType=form`,
             { headers: { Authorization: `Bearer ${token}` } },
           );
           setIfMatch(
-            metadataResponse.headers.get("If-Match") ||
-              metadataResponse.headers.get("ETag") ||
+            metaResponse.headers.get("If-Match") ||
+              metaResponse.headers.get("ETag") ||
               "",
           );
+          if (metaResponse.ok) {
+            const metaResult = await metaResponse.json();
+            const actionContent = metaResult?.data?.caseInfo?.content || {};
+            const rawList =
+              actionContent.RequirementLists ||
+              actionContent.RequirementList ||
+              actionContent.Requirements ||
+              actionContent.pyRequirementLists ||
+              actionContent.pyRequirements ||
+              data.content?.RequirementLists ||
+              data.content?.Requirements ||
+              data.requirements ||
+              [];
+
+            if (Array.isArray(rawList) && rawList.length > 0) {
+              requirements = rawList.map((r) => ({
+                name:
+                  r.pyRequirementName ||
+                  r.RequirementName ||
+                  r.Requirement ||
+                  r.pyLabel ||
+                  r.name ||
+                  "",
+                detail:
+                  r.pyRequirementDetail ||
+                  r.RequirementDetail ||
+                  r.RequirementDescription ||
+                  r.detail ||
+                  r.Description ||
+                  "",
+                correction:
+                  r.pyCorrectionDetails ||
+                  r.CorrectionDetails ||
+                  r.NIGOCorrectionDetails ||
+                  r.correction ||
+                  r.pyMessage ||
+                  "",
+                documentStatus:
+                  r.pyDocumentStatus ||
+                  r.DocumentStatus ||
+                  r.documentStatus ||
+                  r.pyStatus ||
+                  "",
+                workbenchStatus:
+                  r.pyWorkbenchStatus ||
+                  r.WorkbenchStatus ||
+                  r.workbenchStatus ||
+                  r.pyStatusWork ||
+                  "",
+              }));
+            }
+          }
         }
+
+        data.requirements = requirements;
+        setCaseData(data);
         setStep("CASE_DETAIL");
       } catch (caught) {
         setError(caught.message);
@@ -499,58 +524,80 @@ export default function App() {
     [caseData, token, notify],
   );
 
-  const save = useCallback(async () => {
-    if (!assignmentId || !actionId) return;
-    setSubmitting(true);
-    try {
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-      if (ifMatch) headers["If-Match"] = ifMatch;
-      const response = await fetch(
-        `${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}`,
-        {
-          method: "PATCH",
-          headers,
-          body: JSON.stringify({ content: {} }),
-        },
-      );
-      await apiResponse(response, "Save failed.");
-      notify("Assignment saved successfully");
-    } catch (caught) {
-      notify(caught.message, "error");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [assignmentId, actionId, token, ifMatch, notify]);
+  const save = useCallback(
+    async (comments = {}) => {
+      if (!assignmentId || !actionId) return;
+      setSubmitting(true);
+      try {
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+        if (ifMatch) headers["If-Match"] = ifMatch;
+        const response = await fetch(
+          `${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}`,
+          {
+            method: "PATCH",
+            headers,
+            body: JSON.stringify({
+              content: {
+                Comments:
+                  Object.entries(comments)
+                    .filter(([_, v]) => Boolean(v))
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join("\n") || "",
+              },
+            }),
+          },
+        );
+        await apiResponse(response, "Save failed.");
+        notify("Assignment saved successfully");
+      } catch (caught) {
+        notify(caught.message, "error");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [assignmentId, actionId, token, ifMatch, notify],
+  );
 
-  const submit = useCallback(async () => {
-    if (!assignmentId || !actionId) return;
-    setSubmitting(true);
-    try {
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-      if (ifMatch) headers["If-Match"] = ifMatch;
-      const response = await fetch(
-        `${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}`,
-        {
-          method: "PATCH",
-          headers,
-          body: JSON.stringify({ content: {} }),
-        },
-      );
-      await apiResponse(response, "Submit failed.");
-      notify("Assignment submitted successfully");
-      setStep("SUCCESS");
-    } catch (caught) {
-      notify(caught.message, "error");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [assignmentId, actionId, token, ifMatch, notify]);
+  const submit = useCallback(
+    async (comments = {}) => {
+      if (!assignmentId || !actionId) return;
+      setSubmitting(true);
+      try {
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+        if (ifMatch) headers["If-Match"] = ifMatch;
+        const response = await fetch(
+          `${ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/${actionId}`,
+          {
+            method: "PATCH",
+            headers,
+            body: JSON.stringify({
+              content: {
+                Comments:
+                  Object.entries(comments)
+                    .filter(([_, v]) => Boolean(v))
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join("\n") || "",
+              },
+            }),
+          },
+        );
+        await apiResponse(response, "Submit failed.");
+        notify("Assignment submitted successfully");
+        setStep("SUCCESS");
+      } catch (caught) {
+        notify(caught.message, "error");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [assignmentId, actionId, token, ifMatch, notify],
+  );
 
   const home = () => {
     setCaseData(null);
