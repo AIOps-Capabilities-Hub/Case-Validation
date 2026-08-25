@@ -707,13 +707,13 @@ const mockAssignmentView = (caseKey, insName) => ({
             {
               caption: {
                 visible: true,
-                value: "Awaiting Beneficiary to respond"
-              }
-            }
+                value: "Awaiting Beneficiary to respond",
+              },
+            },
           ],
           layoutFormat: "SIMPLELAYOUT",
-          title: ""
-        }
+          title: "",
+        },
       },
       {
         layout: {
@@ -737,50 +737,50 @@ const mockAssignmentView = (caseKey, insName) => ({
                                   {
                                     field: {
                                       control: {
-                                        label: "Claimant Statement"
-                                      }
-                                    }
-                                  }
-                                ]
-                              }
-                            }
-                          ]
-                        }
-                      }
-                    ]
-                  }
+                                        label: "Claimant Statement",
+                                      },
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
                 },
                 {
                   field: {
                     fieldID: "RequirementDetail",
-                    value: "BENETESTINTRTEREL05  TESTBENELASTNAME"
-                  }
+                    value: "BENETESTINTRTEREL05  TESTBENELASTNAME",
+                  },
                 },
                 {
                   field: {
                     fieldID: "NIGOCorrectionDetails",
-                    value: ""
-                  }
+                    value: "",
+                  },
                 },
                 {
                   field: {
                     fieldID: "DocumentStatus",
-                    value: ""
-                  }
+                    value: "",
+                  },
                 },
                 {
                   field: {
                     fieldID: "WorkBenchStatus",
-                    value: "Ordered"
-                  }
+                    value: "Ordered",
+                  },
                 },
                 {
                   field: {
                     fieldID: "BeneficiaryComments",
-                    value: ""
-                  }
-                }
-              ]
+                    value: "",
+                  },
+                },
+              ],
             },
             {
               groups: [
@@ -797,56 +797,56 @@ const mockAssignmentView = (caseKey, insName) => ({
                                   {
                                     field: {
                                       control: {
-                                        label: "Obituary"
-                                      }
-                                    }
-                                  }
-                                ]
-                              }
-                            }
-                          ]
-                        }
-                      }
-                    ]
-                  }
+                                        label: "Obituary",
+                                      },
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
                 },
                 {
                   field: {
                     fieldID: "RequirementDetail",
-                    value: "BOERIC INTRTDEC"
-                  }
+                    value: "BOERIC INTRTDEC",
+                  },
                 },
                 {
                   field: {
                     fieldID: "NIGOCorrectionDetails",
-                    value: ""
-                  }
+                    value: "",
+                  },
                 },
                 {
                   field: {
                     fieldID: "DocumentStatus",
-                    value: ""
-                  }
+                    value: "",
+                  },
                 },
                 {
                   field: {
                     fieldID: "WorkBenchStatus",
-                    value: "Ordered"
-                  }
+                    value: "Ordered",
+                  },
                 },
                 {
                   field: {
                     fieldID: "BeneficiaryComments",
-                    value: ""
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      }
-    ]
-  }
+                    value: "",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+  },
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -949,7 +949,9 @@ const handleMockRequest = async (input, options = {}) => {
           .split("!")[0]
       : "AIG-LR-LIFE-CLM-WORK BU-21393";
     return jsonResponse({
-      caseID: caseKey.includes(" ") ? caseKey : `AIG-LR-LIFE-CLM-WORK ${caseKey}`,
+      caseID: caseKey.includes(" ")
+        ? caseKey
+        : `AIG-LR-LIFE-CLM-WORK ${caseKey}`,
       ID: `ASSIGN-WORKBASKET ${caseKey.includes(" ") ? caseKey : `AIG-LR-LIFE-CLM-WORK ${caseKey}`}!REQUIREMENTSFULFILLMENT`,
       instructions: "Awaiting Fulfillment",
       name: "Claimant, Beneficiary (BENETESTINTRTEREL05  TESTBENELASTNAME)",

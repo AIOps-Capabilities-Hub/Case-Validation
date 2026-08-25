@@ -260,8 +260,8 @@ function Landing({ onStart }) {
             marginBottom: "40px",
           }}
         >
-          Handle the most common policy requests online, 24/7 — no phone
-          calls required.
+          Handle the most common policy requests online, 24/7 — no phone calls
+          required.
         </p>
 
         {/* Grid layout matching Corebridge cards */}
@@ -355,7 +355,8 @@ function Landing({ onStart }) {
                 marginBottom: "20px",
               }}
             >
-              Initiate a death claim for a life insurance policy on behalf of a beneficiary.
+              Initiate a death claim for a life insurance policy on behalf of a
+              beneficiary.
             </p>
             <div
               style={{
@@ -407,7 +408,8 @@ function Landing({ onStart }) {
                 marginBottom: "20px",
               }}
             >
-              Review outstanding claim requirements and submit the completed fulfillment package.
+              Review outstanding claim requirements and submit the completed
+              fulfillment package.
             </p>
             <div
               style={{
@@ -806,7 +808,8 @@ export default function App() {
           );
           if (caseResponse.ok) {
             const caseResult = await caseResponse.json();
-            caseDetails = caseResult?.caseInfo || caseResult?.data?.caseInfo || {};
+            caseDetails =
+              caseResult?.caseInfo || caseResult?.data?.caseInfo || {};
           }
         } catch (e) {
           console.warn("Failed to fetch case details:", e);
@@ -888,7 +891,10 @@ export default function App() {
             });
           } else {
             // Fallback to flat/raw content parsing
-            const actionContent = metaResult?.data?.caseInfo?.content || metaResult?.caseInfo?.content || {};
+            const actionContent =
+              metaResult?.data?.caseInfo?.content ||
+              metaResult?.caseInfo?.content ||
+              {};
             const rawList =
               actionContent.NIGORequirementList ||
               actionContent.NIGORequirementLists ||
@@ -945,15 +951,19 @@ export default function App() {
 
         const mergedCaseData = {
           ...caseDetails,
-          businessID: caseDetails.businessID || caseItem.pxRefObjectInsName || caseItem.pxRefObjectKey?.split(" ").pop() || "",
+          businessID:
+            caseDetails.businessID ||
+            caseItem.pxRefObjectInsName ||
+            caseItem.pxRefObjectKey?.split(" ").pop() ||
+            "",
           ID: caseDetails.ID || caseID || caseRef,
           requirements,
           assignments: [
             {
               ID: assignmentId,
-              actions: [{ ID: "AwaitingFulfillment" }]
-            }
-          ]
+              actions: [{ ID: "AwaitingFulfillment" }],
+            },
+          ],
         };
 
         setCaseData(mergedCaseData);
