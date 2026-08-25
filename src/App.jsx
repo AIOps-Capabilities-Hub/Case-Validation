@@ -984,7 +984,7 @@ export default function App() {
         const form = new FormData();
         form.append("file", file);
         form.append("contextId", caseData.ID);
-        form.append("category", "BeneficiaryAttachmentList");
+        form.append("category", "ClaimantResponseDocuments");
         form.append("appendUniqueIdToFileName", "true");
         const response = await fetch(`${UPLOAD_BASE}/attachments/upload`, {
           method: "POST",
