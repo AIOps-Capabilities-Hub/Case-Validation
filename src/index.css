@@ -585,6 +585,30 @@ button:disabled {
   animation: spin 0.85s linear infinite;
 }
 
+.loader--sm {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+.attach-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.upload-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.upload-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
 .error-panel,
 .success-panel {
   width: min(480px, 100%);

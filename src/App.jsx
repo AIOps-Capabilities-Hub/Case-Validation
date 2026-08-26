@@ -670,13 +670,21 @@ function CaseDetail({
 
         <div className="attachment-area">
           <input ref={inputRef} type="file" onChange={handleFile} hidden />
-          <button
-            className="outline-button"
-            onClick={chooseFile}
-            disabled={uploading}
-          >
-            {uploading ? "UPLOADING…" : "ATTACH CONTENT"}
-          </button>
+          <div className="attach-row">
+            <button
+              className="outline-button"
+              onClick={chooseFile}
+              disabled={uploading}
+            >
+              ATTACH CONTENT
+            </button>
+            {uploading && (
+              <span className="upload-status">
+                <span className="loader loader--sm" />
+                <span className="upload-label">Uploading…</span>
+              </span>
+            )}
+          </div>
           {attachments.length > 0 && (
             <div className="attachment-list">
               {attachments.map((attachment) => (
@@ -1074,9 +1082,7 @@ export default function App() {
             body: JSON.stringify({
               content: {
                 NIGORequirementList: reqs.map((req) => ({
-                  // pxObjClass: "AIG-LR-Life-CLM-Data-WorkBenchReqTasks",
                   Comments: comments[req.name] || "",
-                  // BeneficiaryComments: comments[req.name] || "",
                 })),
               },
             }),
@@ -1113,9 +1119,7 @@ export default function App() {
             body: JSON.stringify({
               content: {
                 NIGORequirementList: reqs.map((req) => ({
-                  pxObjClass: "AIG-LR-Life-CLM-Data-WorkBenchReqTasks",
                   Comments: comments[req.name] || "",
-                  BeneficiaryComments: comments[req.name] || "",
                 })),
               },
             }),
