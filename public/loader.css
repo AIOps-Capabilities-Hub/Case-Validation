@@ -32,6 +32,22 @@
   animation: loader-spin-v2 0.75s linear infinite;
 }
 
+.submit-button:disabled {
+  position: relative;
+  gap: 8px;
+}
+
+.submit-button:disabled::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: loader-spin-v2 0.75s linear infinite;
+}
+
 @keyframes loader-spin-v2 {
   to {
     transform: rotate(360deg);
@@ -40,7 +56,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .state-screen .loader,
-  .upload-status .loader.loader--sm {
+  .upload-status .loader.loader--sm,
+  .submit-button:disabled::before {
     animation: none;
   }
 }
