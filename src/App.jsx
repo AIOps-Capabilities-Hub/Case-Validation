@@ -7,6 +7,7 @@ const TOKEN_URL = import.meta.env.VITE_TOKEN_URL;
 const API_BASE = import.meta.env.VITE_API_BASE;
 const NEW_ASSIGN_BASE = import.meta.env.VITE_NEW_ASSIGN_BASE || API_BASE;
 const UPLOAD_BASE = import.meta.env.VITE_UPLOAD_BASE || API_BASE;
+const SUBMIT_TIMEOUT_MS = 30000;
 
 const isMockMode = [true, "true", "1", "yes"].includes(
   import.meta.env.VITE_MOCK_MODE,
@@ -97,7 +98,6 @@ function Landing({ onStart }) {
         backgroundColor: "#f3f4f6",
       }}
     >
-      {/* Header */}
       <header
         style={{
           backgroundColor: "#1e0936",
@@ -184,7 +184,6 @@ function Landing({ onStart }) {
         </div>
       </header>
 
-      {/* Search Bar Section */}
       <div
         style={{
           background: "linear-gradient(180deg, #1e0936 0%, #3b0764 100%)",
@@ -240,7 +239,6 @@ function Landing({ onStart }) {
         </div>
       </div>
 
-      {/* Self-service Content */}
       <div
         style={{
           flexGrow: 1,
@@ -273,7 +271,6 @@ function Landing({ onStart }) {
           required.
         </p>
 
-        {/* Grid layout matching Corebridge cards */}
         <div
           style={{
             display: "grid",
@@ -283,7 +280,6 @@ function Landing({ onStart }) {
             alignItems: "stretch",
           }}
         >
-          {/* Card 1: Address Change (static/disabled) */}
           <div
             className="card"
             style={{
@@ -331,7 +327,6 @@ function Landing({ onStart }) {
             </div>
           </div>
 
-          {/* Card 2: Death Claim (static/disabled) */}
           <div
             className="card"
             style={{
@@ -380,7 +375,6 @@ function Landing({ onStart }) {
             </div>
           </div>
 
-          {/* Card 3: Active Awaiting Fulfillment */}
           <div
             className="card"
             onClick={onStart}
@@ -433,7 +427,6 @@ function Landing({ onStart }) {
             </div>
           </div>
 
-          {/* Card 4: Premium Payment Update (static/disabled) */}
           <div
             className="card"
             style={{
@@ -575,7 +568,6 @@ function CaseDetail({
   const inputRef = useRef(null);
   const [comments, setComments] = useState({});
   const content = caseData?.content || {};
-  // Requirements are normalized and set in selectCase from the assignment action response
   const requirements = caseData?.requirements || [];
   const assignment = caseData?.assignments?.[0];
   const action = assignment?.actions?.[0];
@@ -803,7 +795,6 @@ export default function App() {
         const assignmentId = caseItem.pzInsKey;
         const caseRef = caseItem.pxRefObjectKey || caseItem.pxRefObjectInsName;
 
-        // 1. Fetch assignment details (v1 endpoint)
         const response = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}`,
           { headers: { Authorization: `Bearer ${token}` } },
@@ -816,7 +807,6 @@ export default function App() {
         const caseID = result.caseID || result.caseInfo?.ID || caseRef;
         setAssignmentId(assignmentId);
 
-        // Fetch case details using caseID to get claim information
         let caseDetails = {};
         try {
           const caseResponse = await fetch(
@@ -832,7 +822,6 @@ export default function App() {
           console.warn("Failed to fetch case details:", e);
         }
 
-        // 2. Fetch assignment action view (v1 endpoint)
         let requirements = [];
         const metaResponse = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/AwaitingFulfillment`,
@@ -847,7 +836,6 @@ export default function App() {
         if (metaResponse.ok) {
           const metaResult = await metaResponse.json();
 
-          // Try parsing from response.view.groups layout structure
           const rows = metaResult?.view?.groups?.[1]?.layout?.rows || [];
           if (Array.isArray(rows) && rows.length > 0) {
             requirements = rows.map((row) => {
@@ -907,7 +895,6 @@ export default function App() {
               };
             });
           } else {
-            // Fallback to flat/raw content parsing
             const actionContent =
               metaResult?.data?.caseInfo?.content ||
               metaResult?.caseInfo?.content ||
@@ -998,7 +985,6 @@ export default function App() {
       if (!caseData?.ID) return;
       setUploading(true);
       try {
-        // Step 1: Upload file content to obtain file ID
         const form = new FormData();
         form.append("file", file);
         form.append("contextId", caseData.ID);
@@ -1021,7 +1007,6 @@ export default function App() {
           throw new Error("No upload ID returned from server.");
         }
 
-        // Step 2: Link the uploaded file to the case via case attachments endpoint
         const attachResponse = await fetch(
           `${NEW_ASSIGN_BASE}/cases/${encodeId(caseData.ID)}/attachments`,
           {
@@ -1103,6 +1088,8 @@ export default function App() {
     async (comments = {}) => {
       if (!assignmentId) return;
       setSubmitting(true);
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
       try {
         const headers = {
           "Content-Type": "application/json",
@@ -1123,14 +1110,23 @@ export default function App() {
                 })),
               },
             }),
+            signal: controller.signal,
           },
         );
         await apiResponse(response, "Submit failed.");
         notify("Assignment submitted successfully");
         setStep("SUCCESS");
       } catch (caught) {
-        notify(caught.message, "error");
+        if (caught.name === "AbortError") {
+          notify(
+            "Submission is taking too long to respond. Please verify the assignment status before trying again.",
+            "error",
+          );
+        } else {
+          notify(caught.message, "error");
+        }
       } finally {
+        window.clearTimeout(timeoutId);
         setSubmitting(false);
       }
     },
