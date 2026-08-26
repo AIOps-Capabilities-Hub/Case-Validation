@@ -1067,7 +1067,7 @@ export default function App() {
             body: JSON.stringify({
               content: {
                 NIGORequirementList: reqs.map((req) => ({
-                  Comments: comments[req.name] || "",
+                  BeneficiaryComments: comments[req.name] || "",
                 })),
               },
             }),
