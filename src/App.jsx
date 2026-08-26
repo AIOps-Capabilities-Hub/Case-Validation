@@ -15,14 +15,23 @@ const isMockMode = [true, "true", "1", "yes"].includes(
 const encodeId = (value) => encodeURIComponent(value);
 
 const apiResponse = async (response, message) => {
-  if (response.ok) return response.json();
+  const text = await response.text().catch(() => "");
+  if (response.ok) {
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { text };
+    }
+  }
   let detail = message;
-  try {
-    const body = await response.json();
-    detail = body?.localizedValue || body?.message || detail;
-  } catch {
-    const text = await response.text().catch(() => "");
-    if (text) detail = text;
+  if (text) {
+    try {
+      const body = JSON.parse(text);
+      detail = body?.localizedValue || body?.message || detail;
+    } catch {
+      detail = text;
+    }
   }
   throw new Error(detail);
 };
@@ -1057,7 +1066,6 @@ export default function App() {
         };
         if (ifMatch) headers["If-Match"] = ifMatch;
         const reqs = caseData?.requirements || [];
-        // Same payload format as submit but with saveOnly=true to persist without advancing
         const response = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?actionID=AwaitingFulfillment&saveOnly=true`,
           {
@@ -1066,7 +1074,9 @@ export default function App() {
             body: JSON.stringify({
               content: {
                 NIGORequirementList: reqs.map((req) => ({
+                  // pxObjClass: "AIG-LR-Life-CLM-Data-WorkBenchReqTasks",
                   Comments: comments[req.name] || "",
+                  // BeneficiaryComments: comments[req.name] || "",
                 })),
               },
             }),
@@ -1094,8 +1104,6 @@ export default function App() {
         };
         if (ifMatch) headers["If-Match"] = ifMatch;
 
-        // Confirmed working payload: content.NIGORequirementList with Comments only.
-        // Attachments are uploaded separately via uploadAttachment — not sent here.
         const reqs = caseData?.requirements || [];
         const response = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?actionID=AwaitingFulfillment`,
@@ -1105,7 +1113,9 @@ export default function App() {
             body: JSON.stringify({
               content: {
                 NIGORequirementList: reqs.map((req) => ({
+                  pxObjClass: "AIG-LR-Life-CLM-Data-WorkBenchReqTasks",
                   Comments: comments[req.name] || "",
+                  BeneficiaryComments: comments[req.name] || "",
                 })),
               },
             }),
