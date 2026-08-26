@@ -1089,7 +1089,10 @@ export default function App() {
       if (!assignmentId) return;
       setSubmitting(true);
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
+      const timeoutId = window.setTimeout(
+        () => controller.abort(),
+        SUBMIT_TIMEOUT_MS,
+      );
       try {
         const headers = {
           "Content-Type": "application/json",
