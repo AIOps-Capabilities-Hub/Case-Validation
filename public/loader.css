@@ -1,0 +1,46 @@
+.state-screen .loader {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #dbe5f0;
+  border-top-color: var(--blue);
+  border-right-color: #3b82f6;
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px rgba(0, 86, 179, 0.06);
+  animation: loader-spin-v2 0.9s linear infinite;
+}
+
+.state-screen strong {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.state-screen::after {
+  content: "Please wait while the case data is retrieved.";
+  color: var(--muted);
+  font-size: 12px;
+  max-width: 320px;
+}
+
+.upload-status .loader.loader--sm {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #dbe5f0;
+  border-top-color: var(--blue);
+  border-right-color: #3b82f6;
+  box-shadow: none;
+  animation: loader-spin-v2 0.75s linear infinite;
+}
+
+@keyframes loader-spin-v2 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .state-screen .loader,
+  .upload-status .loader.loader--sm {
+    animation: none;
+  }
+}
