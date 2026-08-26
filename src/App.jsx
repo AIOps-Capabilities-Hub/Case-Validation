@@ -981,23 +981,62 @@ export default function App() {
       if (!caseData?.ID) return;
       setUploading(true);
       try {
+        // Step 1: Upload file content to obtain file ID
         const form = new FormData();
         form.append("file", file);
         form.append("contextId", caseData.ID);
-        // form.append("category", "ClaimantResponseDocuments");
         form.append("appendUniqueIdToFileName", "true");
-        const response = await fetch(`${UPLOAD_BASE}/attachments/upload`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: form,
-        });
-        const result = await apiResponse(response, "Attachment upload failed.");
-        const id = result?.ID || result?.id;
+        const uploadResponse = await fetch(
+          `${UPLOAD_BASE}/attachments/upload`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: form,
+          },
+        );
+        const uploadResult = await apiResponse(
+          uploadResponse,
+          "Attachment upload failed.",
+        );
+        const uploadId = uploadResult?.ID || uploadResult?.id;
+
+        if (!uploadId) {
+          throw new Error("No upload ID returned from server.");
+        }
+
+        // Step 2: Link the uploaded file to the case via case attachments endpoint
+        const attachResponse = await fetch(
+          `${NEW_ASSIGN_BASE}/cases/${encodeId(caseData.ID)}/attachments`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              attachments: [
+                {
+                  attachmentFieldName: "ResponseAttachments",
+                  category: "File",
+                  ID: uploadId,
+                  type: "File",
+                  name: file.name,
+                },
+              ],
+            }),
+          },
+        );
+        const attachResult = await apiResponse(
+          attachResponse,
+          "Case attachment association failed.",
+        );
+        const finalId = attachResult?.ID || attachResult?.id || uploadId;
+
         setAttachments((current) => [
           ...current,
-          { id: id || file.name, name: file.name },
+          { id: finalId, name: file.name },
         ]);
-        notify("Attachment uploaded successfully");
+        notify("Attachment uploaded and linked successfully");
       } catch (caught) {
         notify(caught.message, "error");
       } finally {

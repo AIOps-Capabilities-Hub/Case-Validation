@@ -1040,6 +1040,15 @@ const handleMockRequest = async (input, options = {}) => {
     });
   }
 
+  // ── Case attachments POST ───────────────────────────────────────────────
+  if (
+    url.includes("/cases/") &&
+    url.includes("/attachments") &&
+    method === "POST"
+  ) {
+    return jsonResponse({ ID: `MOCK-CASE-ATTACH-${Date.now()}` }, 201);
+  }
+
   // ── Attachments upload ──────────────────────────────────────────────────
   if (url.includes("/attachments/upload") && method === "POST") {
     return jsonResponse({ ID: `MOCK-ATTACH-${Date.now()}` }, 201);
