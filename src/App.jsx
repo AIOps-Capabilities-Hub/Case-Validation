@@ -7,7 +7,15 @@ const TOKEN_URL = import.meta.env.VITE_TOKEN_URL;
 const API_BASE = import.meta.env.VITE_API_BASE;
 const NEW_ASSIGN_BASE = import.meta.env.VITE_NEW_ASSIGN_BASE || API_BASE;
 const UPLOAD_BASE = import.meta.env.VITE_UPLOAD_BASE || API_BASE;
-const SUBMIT_TIMEOUT_MS = 30000;
+// Hard network-level abort: only fires if the server never responds at all.
+// Must be large enough that it NEVER fires during normal processing.
+// Pega can take 20-30 s under load (GenAI + REST connectors), so 60 s is safe.
+const SUBMIT_FETCH_TIMEOUT_MS = 60000;
+
+// After the POST returns 200, Pega's GenAI (~6 s) and REST connectors (~7 s)
+// keep running asynchronously.  We pause here so that data is persisted before
+// the user sees the SUCCESS screen.
+const SUBMIT_POST_DELAY_MS = 25000;
 
 const isMockMode = [true, "true", "1", "yes"].includes(
   import.meta.env.VITE_MOCK_MODE,
@@ -1088,11 +1096,15 @@ export default function App() {
     async (comments = {}) => {
       if (!assignmentId) return;
       setSubmitting(true);
+
+      // This abort is ONLY a dead-network guard. It must be cleared as soon as
+      // the fetch succeeds so it cannot accidentally fire during the post-delay.
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(
+      const fetchTimeoutId = window.setTimeout(
         () => controller.abort(),
-        SUBMIT_TIMEOUT_MS,
+        SUBMIT_FETCH_TIMEOUT_MS,
       );
+
       try {
         const headers = {
           "Content-Type": "application/json",
@@ -1116,20 +1128,36 @@ export default function App() {
             signal: controller.signal,
           },
         );
+        // Fetch resolved — disarm the abort immediately so it cannot
+        // fire during the post-delay wait below.
+        window.clearTimeout(fetchTimeoutId);
+
         await apiResponse(response, "Submit failed.");
+
+        // The Pega backend runs GenAI classification (~6 s) and external REST
+        // connectors (~7 s) asynchronously AFTER returning the 200 response.
+        // We must wait here so those processes finish and persist their data
+        // before we navigate away and the user considers the case complete.
+        notify(
+          "Submission received. Finalizing backend processing — please wait…",
+        );
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, SUBMIT_POST_DELAY_MS),
+        );
+
         notify("Assignment submitted successfully");
         setStep("SUCCESS");
       } catch (caught) {
+        window.clearTimeout(fetchTimeoutId);
         if (caught.name === "AbortError") {
           notify(
-            "Submission is taking too long to respond. Please verify the assignment status before trying again.",
+            "The server did not respond in time. Please check the assignment status before trying again.",
             "error",
           );
         } else {
           notify(caught.message, "error");
         }
       } finally {
-        window.clearTimeout(timeoutId);
         setSubmitting(false);
       }
     },
