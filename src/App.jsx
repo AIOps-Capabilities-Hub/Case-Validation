@@ -96,10 +96,10 @@ function Header({ step, caseData, onHome }) {
         onClick={onHome}
         aria-label="Case Validation home"
       >
-        <span className="brand-mark">AIG</span>
+        <span className="brand-mark">CB</span>
         <span className="brand-copy">
-          <strong>Claims Management</strong>
-          <small>Beneficiary Fulfillment</small>
+          <strong>Corebridge Financial</strong>
+          <small>Claims Management - Beneficiary Fulfillment</small>
         </span>
       </button>
       {step === "CASE_DETAIL" && caseData && (
