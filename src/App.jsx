@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./index.css";
 
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
@@ -37,7 +37,26 @@ const apiResponse = async (response, message) => {
   if (text) {
     try {
       const body = JSON.parse(text);
-      detail = body?.localizedValue || body?.message || detail;
+      if (body?.errors && Array.isArray(body.errors)) {
+        const messages = body.errors.flatMap((error) =>
+          (Array.isArray(error?.ValidationMessages)
+            ? error.ValidationMessages
+            : []
+          )
+            .map((item) => item?.ValidationMessage?.trim())
+            .filter(Boolean),
+        );
+        const filteredMessages = messages.filter(
+          (msg) => !/^Error Code:\s*400\s*-/i.test(msg),
+        );
+        if (filteredMessages.length > 0) {
+          detail = filteredMessages.join("\n");
+        } else if (body.errors[0]?.message) {
+          detail = body.errors[0].message;
+        }
+      } else {
+        detail = body?.localizedValue || body?.message || detail;
+      }
     } catch {
       detail = text;
     }
@@ -572,6 +591,7 @@ function CaseDetail({
   onUpload,
   uploading,
   attachments,
+  submitError,
 }) {
   const inputRef = useRef(null);
   const [comments, setComments] = useState({});
@@ -610,6 +630,32 @@ function CaseDetail({
 
   return (
     <main className="page-shell detail-page">
+      {submitError && (
+        <div
+          className="case-validation-api-message"
+          role="alert"
+          style={{
+            margin: "0 0 18px",
+            padding: "14px 18px",
+            border: "1px solid #dc2626",
+            borderRadius: "6px",
+            background: "#fef2f2",
+            color: "#991b1b",
+            fontSize: "14px",
+            fontWeight: "600",
+            lineHeight: "1.5",
+            boxSizing: "border-box",
+            width: "100%",
+          }}
+        >
+          <div>Validation messages</div>
+          <ul style={{ margin: "8px 0 0", paddingLeft: "20px" }}>
+            {submitError.split("\n").map((msg, i) => (
+              <li key={i}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="detail-topline">
         <button className="text-button" onClick={onBack}>
           ← Back
@@ -721,7 +767,18 @@ function CaseDetail({
 }
 
 export default function App() {
-  const [step, setStep] = useState("START");
+  const [step, setStep] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem("case-validation-pending-reload");
+      if (raw) {
+        const pending = JSON.parse(raw);
+        if (pending && pending.caseKey) {
+          return "LOADING";
+        }
+      }
+    } catch {}
+    return "START";
+  });
   const [token, setToken] = useState("");
   const [cases, setCases] = useState([]);
   const [caseData, setCaseData] = useState(null);
@@ -733,6 +790,7 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [submitError, setSubmitError] = useState("");
 
   const notify = useCallback((message, type = "success") => {
     setNotice(message);
@@ -795,17 +853,19 @@ export default function App() {
   }, [authenticate, getCases, notify]);
 
   const selectCase = useCallback(
-    async (caseItem) => {
+    async (caseItem, passedToken) => {
       setStep("LOADING");
       setError("");
       setAttachments([]);
+      setSubmitError("");
       try {
         const assignmentId = caseItem.pzInsKey;
         const caseRef = caseItem.pxRefObjectKey || caseItem.pxRefObjectInsName;
+        const activeToken = passedToken || token;
 
         const response = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}`,
-          { headers: { Authorization: `Bearer ${token}` } },
+          { headers: { Authorization: `Bearer ${activeToken}` } },
         );
         const result = await apiResponse(
           response,
@@ -819,7 +879,7 @@ export default function App() {
         try {
           const caseResponse = await fetch(
             `${API_BASE}/cases/${encodeId(caseID)}?viewType=page`,
-            { headers: { Authorization: `Bearer ${token}` } },
+            { headers: { Authorization: `Bearer ${activeToken}` } },
           );
           if (caseResponse.ok) {
             const caseResult = await caseResponse.json();
@@ -833,7 +893,7 @@ export default function App() {
         let requirements = [];
         const metaResponse = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/AwaitingFulfillment`,
-          { headers: { Authorization: `Bearer ${token}` } },
+          { headers: { Authorization: `Bearer ${activeToken}` } },
         );
         setIfMatch(
           metaResponse.headers.get("If-Match") ||
@@ -987,6 +1047,56 @@ export default function App() {
     },
     [token],
   );
+  const recover = useCallback(
+    async (pending) => {
+      setStep("LOADING");
+      setError("");
+      try {
+        const accessToken = await authenticate();
+        setToken(accessToken);
+        const result = await getCases(accessToken);
+        const rows = Array.isArray(result?.data)
+          ? result.data
+          : result?.data?.pxResults || result?.pxResults || [];
+        setCases(rows);
+
+        const caseItem = rows.find(
+          (item) =>
+            item.pxRefObjectKey === pending.caseKey ||
+            item.pxRefObjectInsName === pending.caseKey ||
+            item.pzInsKey === pending.caseKey ||
+            item.pzInsKey?.includes(pending.caseKey) ||
+            pending.caseKey?.includes(item.pxRefObjectInsName),
+        );
+        if (caseItem) {
+          await selectCase(caseItem, accessToken);
+          setSubmitError(pending.messages.join("\n"));
+        } else {
+          setStep("CASE_LIST");
+        }
+      } catch (caught) {
+        setError(caught.message);
+        setStep("ERROR");
+      }
+    },
+    [authenticate, getCases, selectCase],
+  );
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("case-validation-pending-reload");
+    if (!raw) return;
+    try {
+      const pending = JSON.parse(raw);
+      if (pending && pending.caseKey) {
+        sessionStorage.removeItem("case-validation-pending-reload");
+        setTimeout(() => {
+          recover(pending);
+        }, 0);
+      }
+    } catch (e) {
+      console.error("Failed to parse pending reload data", e);
+    }
+  }, [recover]);
 
   const uploadAttachment = useCallback(
     async (file) => {
@@ -1096,6 +1206,7 @@ export default function App() {
     async (comments = {}) => {
       if (!assignmentId) return;
       setSubmitting(true);
+      setSubmitError("");
 
       // This abort is ONLY a dead-network guard. It must be cleared as soon as
       // the fetch succeeds so it cannot accidentally fire during the post-delay.
@@ -1155,7 +1266,14 @@ export default function App() {
             "error",
           );
         } else {
-          notify(caught.message, "error");
+          sessionStorage.setItem(
+            "case-validation-pending-reload",
+            JSON.stringify({
+              caseKey: caseData?.ID || assignmentId,
+              messages: [caught.message],
+            }),
+          );
+          window.location.reload();
         }
       } finally {
         setSubmitting(false);
@@ -1213,6 +1331,7 @@ export default function App() {
           onUpload={uploadAttachment}
           uploading={uploading}
           attachments={attachments}
+          submitError={submitError}
         />
       )}
       {step === "SUCCESS" && (
