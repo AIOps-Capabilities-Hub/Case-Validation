@@ -9,20 +9,18 @@
     return method === "POST" && /\/assignments\/[^?]+\?actionID=AwaitingFulfillment(?:&|$)/i.test(url);
   };
 
-  const extractValidationMessages = (body) =>
-    (Array.isArray(body?.errors) ? body.errors : []).flatMap((error) =>
+  const extractValidationMessages = (body) => {
+    const messages = (Array.isArray(body?.errors) ? body.errors : []).flatMap((error) =>
       (Array.isArray(error?.ValidationMessages) ? error.ValidationMessages : [])
         .map((item) => item?.ValidationMessage?.trim())
         .filter(Boolean),
     );
-
-  const assignmentIdFrom = (input) => {
-    const url = typeof input === "string" ? input : input?.url || "";
-    const match = url.match(/\/assignments\/([^?]+)/i);
-    return match ? decodeURIComponent(match[1]) : "";
+    return [...new Set(messages)].filter(
+      (message) => !/^Error Code:\s*400\s*-/i.test(message),
+    );
   };
 
-  const getCaseReference = () =>
+  const caseReference = () =>
     document.querySelector(".header-case")?.textContent?.trim() ||
     document.querySelector(".case-reference")?.textContent?.trim() ||
     "";
@@ -35,7 +33,7 @@
     }
   };
 
-  const displayValidation = (pending) => {
+  const showValidation = (pending) => {
     const detail = document.querySelector(".detail-page");
     if (!detail || !pending?.messages?.length) return false;
 
@@ -64,6 +62,7 @@
     const heading = document.createElement("div");
     heading.textContent = "Validation messages";
     banner.appendChild(heading);
+
     const list = document.createElement("ul");
     Object.assign(list.style, { margin: "8px 0 0", paddingLeft: "20px" });
     pending.messages.forEach((message) => {
@@ -78,7 +77,8 @@
 
   const recoverAssignment = () => {
     const pending = getPending();
-    if (!pending || displayValidation(pending)) return;
+    if (!pending) return;
+    if (showValidation(pending)) return;
 
     const rows = Array.from(document.querySelectorAll(".case-row"));
     if (rows.length) {
@@ -86,8 +86,10 @@
       const row = rows.find((item) =>
         (item.textContent || "").toLowerCase().includes(reference),
       );
-      if (row) row.click();
-      return;
+      if (row) {
+        row.click();
+        return;
+      }
     }
 
     const startCard = Array.from(document.querySelectorAll(".card")).find((item) =>
@@ -95,7 +97,7 @@
     );
     if (startCard) startCard.click();
 
-    window.setTimeout(recoverAssignment, 150);
+    window.setTimeout(recoverAssignment, 200);
   };
 
   window.fetch = async (input, init) => {
@@ -105,18 +107,14 @@
     try {
       const body = await response.clone().json();
       const messages = extractValidationMessages(body);
-      if (messages.length) {
-        reloadScheduled = true;
-        sessionStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            assignmentId: assignmentIdFrom(input),
-            caseReference: getCaseReference(),
-            messages,
-          }),
-        );
-        window.setTimeout(() => window.location.reload(), 0);
-      }
+      if (!messages.length) return response;
+
+      reloadScheduled = true;
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ caseReference: caseReference(), messages }),
+      );
+      window.location.reload();
     } catch {
       return response;
     }
