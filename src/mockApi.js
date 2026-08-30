@@ -4,6 +4,7 @@
 const MOCK_TOKEN =
   "eyJraWQiOiI1NkNCOUZBRTc0MTREODYyMzIzODgxOUE2M0FGMTc5MiIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJhdWQiOiJ1cm46MTM5NDYzOTYxMDU5MDE5Njc5NTUiLCJzdWIiOiIxMzk0NjM5NjEwNTkwMTk2Nzk1NSIsImFwcF9uYW1lIjoiQ0xNIiwibmJmIjoxNzg3MjMzOTgzLCJhcHBfdmVyc2lvbiI6IjAzLjAxLjE1IiwiaXNzIjoidXJuOmNyYmctZHBhLXN0ZzMucGVnYWNsb3VkLm5ldCIsImV4cCI6MTc4NzIzNzU4MywiaWF0IjoxNzg3MjMzOTgzLCJweU9wZXJhdG9yQ29udGV4dCI6IkFjY2VzcyBHcm91cCIsImp0aSI6IjM3RjAyNjE4ODM1RTQ2NUE2RDIwMDdDOEZCQTVBQTlBIiwib3BlcmF0b3JfYWNjZXNzIjoiQ0xMOkFkbWluaXN0cmF0b3JzIn0.Do7pxw51WhHmp4zZLjWgN5VZ0Y3p2JIsuJIm3UKOPWh4SNpGhFMGS_CIHDzTygsx2UDAozeAxbXTj3Brx_NGqrnBCDoPFwZjjT5jELTIACY-Iw7Fsm-9fm6DYZZcJTUdTnSP7Xed8H2EpwbchEh__y9_31dWwKi2b2i-vDbzmxVBiKSzwI038NYnX9hhlSALgJ5OQJzAUDTbtCZGkEbtGZG9d-4Qaa-QrOomiVyxTC6SI3clF9RkHjuWleAknEC07qsOIlpyJ0Ma1yJsCAF25l8qcTSCSzsgw43b8WgCmpEbC7YwU0MiUhkCgpkeAeGTdaTuqSaWSiPzYHhgHyhFz6wLozN1r2s9T1cN60BoLX5JqA7RoV9LSAuPeRjoyvaI-IGVthzco0K-2ZGnN3T3cd5SvUuKeeFvN6bXdOWxxfIzwICx-7F_SZ4TOEpxvCzxCoeqCfjeXFsLsPXYyBFdrUM3RvG6oAifR5_iW90zJ4w19ZVctdluVX4dDUoQIKkWq6EKf2LKjsVQHbX8O6t1jSDipbHHnrlHCJlOkL69QyPu5g-teD9qkiF5T7O-TJrD0FiXQqouKxPJ-huc8Ap555dj3DTnQ1OEojcPMDnaNouvcHfQcBy4_iCAvqlv81kd7V8Mggb6Pd_yNLCl4z6ptEFLM5aWj0v6JC5oVSvy_Y8";
 const MOCK_DATA_VIEW = "D_GetCasesOnAssignment";
+const caseAttachments = new Map();
 
 // ── Sample case list (mirrors the POST D_GetCasesOnAssignment payload) ───────────
 const mockCaseListResponse = {
@@ -948,10 +949,13 @@ const handleMockRequest = async (input, options = {}) => {
           .replace("ASSIGN-WORKBASKET ", "")
           .split("!")[0]
       : "AIG-LR-LIFE-CLM-WORK BU-21393";
+    const caseId = caseKey.includes(" ")
+      ? caseKey
+      : `AIG-LR-LIFE-CLM-WORK ${caseKey}`;
+    caseAttachments.set(caseId, []);
+
     return jsonResponse({
-      caseID: caseKey.includes(" ")
-        ? caseKey
-        : `AIG-LR-LIFE-CLM-WORK ${caseKey}`,
+      caseID: caseId,
       ID: `ASSIGN-WORKBASKET ${caseKey.includes(" ") ? caseKey : `AIG-LR-LIFE-CLM-WORK ${caseKey}`}!REQUIREMENTSFULFILLMENT`,
       instructions: "Awaiting Fulfillment",
       name: "Claimant, Beneficiary (BENETESTINTRTEREL05  TESTBENELASTNAME)",
@@ -1023,16 +1027,65 @@ const handleMockRequest = async (input, options = {}) => {
     });
   }
 
-  // ── Assignment submit/save POST ─────────────────────────────────────────
   if (
     method === "POST" &&
     url.includes("/assignments/") &&
     !url.includes("/attachments/")
   ) {
+    const asgMatch = url.match(/\/assignments\/([^?]+)/);
+    const assignmentId = asgMatch ? decodeURIComponent(asgMatch[1]) : "";
+    const caseKey = assignmentId
+      .replace("ASSIGN-WORKBASKET ", "")
+      .split("!")[0];
+    const caseId = caseKey.includes(" ")
+      ? caseKey
+      : `AIG-LR-LIFE-CLM-WORK ${caseKey}`;
+
+    const isSave = url.includes("saveOnly=true");
+
+    if (!isSave) {
+      const attachments = caseAttachments.get(caseId) || [];
+      if (attachments.length === 0) {
+        return jsonResponse(
+          {
+            pxObjClass: "-API-CaseManagement-Assignment",
+            errors: [
+              {
+                ID: "Pega_API_055",
+                message: "Validation messages found.",
+                pxObjClass: "-API-Error",
+                ValidationMessages: [
+                  {
+                    pxObjClass: "-API-Error-ValidationMessage",
+                    ValidationMessage:
+                      " Error Code: 400 - The request could not be processed due to invalid input parameters.",
+                  },
+                  {
+                    pxObjClass: "-API-Error-ValidationMessage",
+                    ValidationMessage:
+                      "Please upload the correct document for the NIGO(Not In Good Order) identified requirement",
+                  },
+                ],
+              },
+            ],
+            performAssignmentRequest: {
+              pxObjClass: "-API-CaseManagement",
+              content: {
+                pxActiveChannelFromAPI: "Web",
+                NIGORequirementList: [{}, {}, {}],
+              },
+              pageInstructions: [],
+            },
+          },
+          400,
+        );
+      }
+    }
+
     return jsonResponse({
       data: {
         caseInfo: {
-          ...mockCaseInfo(),
+          ...mockCaseInfo(caseId, caseKey),
           status: "Resolved-Fulfilled",
           assignments: [],
         },
@@ -1046,6 +1099,14 @@ const handleMockRequest = async (input, options = {}) => {
     url.includes("/attachments") &&
     method === "POST"
   ) {
+    const caseMatch = url.match(/\/cases\/([^/]+)\/attachments/);
+    const caseKey = caseMatch ? decodeURIComponent(caseMatch[1]) : "";
+    if (caseKey) {
+      if (!caseAttachments.has(caseKey)) {
+        caseAttachments.set(caseKey, []);
+      }
+      caseAttachments.get(caseKey).push("mock-attachment");
+    }
     return jsonResponse({ ID: `MOCK-CASE-ATTACH-${Date.now()}` }, 201);
   }
 
