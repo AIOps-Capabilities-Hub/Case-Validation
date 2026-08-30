@@ -98,7 +98,7 @@ function Header({ step, caseData, onHome }) {
       >
         <span className="brand-mark">CB</span>
         <span className="brand-copy">
-          <strong>CoreBridge</strong>
+          <strong>Corebridge Financial</strong>
           <small>Claims Management - Beneficiary Fulfillment</small>
         </span>
       </button>
