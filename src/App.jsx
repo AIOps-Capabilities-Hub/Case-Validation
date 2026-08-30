@@ -767,7 +767,18 @@ function CaseDetail({
 }
 
 export default function App() {
-  const [step, setStep] = useState("START");
+  const [step, setStep] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem("case-validation-pending-reload");
+      if (raw) {
+        const pending = JSON.parse(raw);
+        if (pending && pending.caseKey) {
+          return "LOADING";
+        }
+      }
+    } catch {}
+    return "START";
+  });
   const [token, setToken] = useState("");
   const [cases, setCases] = useState([]);
   const [caseData, setCaseData] = useState(null);
@@ -1078,7 +1089,9 @@ export default function App() {
       const pending = JSON.parse(raw);
       if (pending && pending.caseKey) {
         sessionStorage.removeItem("case-validation-pending-reload");
-        recover(pending);
+        setTimeout(() => {
+          recover(pending);
+        }, 0);
       }
     } catch (e) {
       console.error("Failed to parse pending reload data", e);
