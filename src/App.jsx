@@ -10,12 +10,12 @@ const UPLOAD_BASE = import.meta.env.VITE_UPLOAD_BASE || API_BASE;
 // Hard network-level abort: only fires if the server never responds at all.
 // Must be large enough that it NEVER fires during normal processing.
 // Pega can take 20-30 s under load (GenAI + REST connectors), so 60 s is safe.
-const SUBMIT_FETCH_TIMEOUT_MS = 330000;
+const SUBMIT_FETCH_TIMEOUT_MS = 200000;
 
 // After the POST returns 200, Pega's GenAI (~6 s) and REST connectors (~7 s)
 // keep running asynchronously.  We pause here so that data is persisted before
 // the user sees the SUCCESS screen.
-const SUBMIT_POST_DELAY_MS = 300000;
+const SUBMIT_POST_DELAY_MS = 180000;
 
 const isMockMode = [true, "true", "1", "yes"].includes(
   import.meta.env.VITE_MOCK_MODE,
