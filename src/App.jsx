@@ -665,7 +665,7 @@ function CaseDetail({
         </div>
       </div>
 
-      <section className="case-information">
+      {/* <section className="case-information">
         <h1>Beneficiary Case Information</h1>
         <div className="information-grid">
           <div>
@@ -685,7 +685,7 @@ function CaseDetail({
             <strong>{dateValue(deathDate, "")}</strong>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="fulfillment-section">
         <div className="section-title-block">
