@@ -827,6 +827,7 @@ export default function App() {
   const [token, setToken] = useState("");
   const [cases, setCases] = useState([]);
   const [caseData, setCaseData] = useState(null);
+  const [selectedCaseItem, setSelectedCaseItem] = useState(null);
   const [assignmentId, setAssignmentId] = useState("");
   const [ifMatch, setIfMatch] = useState("");
   const [error, setError] = useState("");
@@ -903,6 +904,7 @@ export default function App() {
       setError("");
       // setAttachments([]);
       setSubmitError("");
+      setSelectedCaseItem(caseItem);
       try {
         const assignmentId = caseItem.pzInsKey;
         const caseRef = caseItem.pxRefObjectKey || caseItem.pxRefObjectInsName;
@@ -1400,13 +1402,17 @@ export default function App() {
             "error",
           );
         } else {
-          setSubmitError(caught.message);
+          const errorMsg = caught.message;
+          if (selectedCaseItem) {
+            await selectCase(selectedCaseItem, token);
+          }
+          setSubmitError(errorMsg);
         }
       } finally {
         setSubmitting(false);
       }
     },
-    [assignmentId, token, ifMatch, caseData, rowAttachments, notify],
+    [assignmentId, token, ifMatch, caseData, rowAttachments, notify, selectedCaseItem, selectCase],
   );
 
   const home = () => {
