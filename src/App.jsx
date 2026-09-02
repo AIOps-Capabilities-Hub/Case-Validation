@@ -616,16 +616,15 @@ function RequirementRow({
           className="icon-upload-button"
           style={{
             background: "transparent",
-            border: "1px solid #cbd5e1",
-            borderRadius: "6px",
-            padding: "6px 10px",
+            border: "none",
+            padding: "8px",
             cursor: uploading ? "not-allowed" : "pointer",
             display: "inline-flex",
             alignItems: "center",
-            gap: "6px",
-            fontSize: "12px",
-            color: "var(--blue)",
-            transition: "all 0.15s ease",
+            justifyContent: "center",
+            color: "#0f172a",
+            transition: "opacity 0.15s ease",
+            opacity: uploading ? 0.5 : 1,
           }}
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
@@ -639,18 +638,16 @@ function RequirementRow({
             />
           ) : (
             <svg
-              width="16"
-              height="16"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
             </svg>
           )}
         </button>
@@ -836,8 +833,8 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [noticeType, setNoticeType] = useState("success");
   const [submitting, setSubmitting] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [attachments, setAttachments] = useState([]);
+  // const [uploading, setUploading] = useState(false);
+  // const [attachments, setAttachments] = useState([]);
   const [submitError, setSubmitError] = useState("");
 
   const notify = useCallback((message, type = "success") => {
@@ -1235,73 +1232,73 @@ export default function App() {
     [caseData, token, notify],
   );
 
-  const uploadAttachment = useCallback(
-    async (file) => {
-      if (!caseData?.ID) return;
-      setUploading(true);
-      try {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("contextId", caseData.ID);
-        form.append("appendUniqueIdToFileName", "true");
-        const uploadResponse = await fetch(
-          `${UPLOAD_BASE}/attachments/upload`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-            body: form,
-          },
-        );
-        const uploadResult = await apiResponse(
-          uploadResponse,
-          "Attachment upload failed.",
-        );
-        const uploadId = uploadResult?.ID || uploadResult?.id;
+  // const uploadAttachment = useCallback(
+  //   async (file) => {
+  //     if (!caseData?.ID) return;
+  //     setUploading(true);
+  //     try {
+  //       const form = new FormData();
+  //       form.append("file", file);
+  //       form.append("contextId", caseData.ID);
+  //       form.append("appendUniqueIdToFileName", "true");
+  //       const uploadResponse = await fetch(
+  //         `${UPLOAD_BASE}/attachments/upload`,
+  //         {
+  //           method: "POST",
+  //           headers: { Authorization: `Bearer ${token}` },
+  //           body: form,
+  //         },
+  //       );
+  //       const uploadResult = await apiResponse(
+  //         uploadResponse,
+  //         "Attachment upload failed.",
+  //       );
+  //       const uploadId = uploadResult?.ID || uploadResult?.id;
 
-        if (!uploadId) {
-          throw new Error("No upload ID returned from server.");
-        }
+  //       if (!uploadId) {
+  //         throw new Error("No upload ID returned from server.");
+  //       }
 
-        const attachResponse = await fetch(
-          `${NEW_ASSIGN_BASE}/cases/${encodeId(caseData.ID)}/attachments`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              attachments: [
-                {
-                  attachmentFieldName: "ResponseAttachments",
-                  category: "File",
-                  ID: uploadId,
-                  type: "File",
-                  name: file.name,
-                },
-              ],
-            }),
-          },
-        );
-        const attachResult = await apiResponse(
-          attachResponse,
-          "Case attachment association failed.",
-        );
-        const finalId = attachResult?.ID || attachResult?.id || uploadId;
+  //       const attachResponse = await fetch(
+  //         `${NEW_ASSIGN_BASE}/cases/${encodeId(caseData.ID)}/attachments`,
+  //         {
+  //           method: "POST",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //           body: JSON.stringify({
+  //             attachments: [
+  //               {
+  //                 attachmentFieldName: "ResponseAttachments",
+  //                 category: "File",
+  //                 ID: uploadId,
+  //                 type: "File",
+  //                 name: file.name,
+  //               },
+  //             ],
+  //           }),
+  //         },
+  //       );
+  //       const attachResult = await apiResponse(
+  //         attachResponse,
+  //         "Case attachment association failed.",
+  //       );
+  //       const finalId = attachResult?.ID || attachResult?.id || uploadId;
 
-        setAttachments((current) => [
-          ...current,
-          { id: finalId, name: file.name },
-        ]);
-        notify("Attachment uploaded and linked successfully");
-      } catch (caught) {
-        notify(caught.message, "error");
-      } finally {
-        setUploading(false);
-      }
-    },
-    [caseData, token, notify],
-  );
+  //       setAttachments((current) => [
+  //         ...current,
+  //         { id: finalId, name: file.name },
+  //       ]);
+  //       notify("Attachment uploaded and linked successfully");
+  //     } catch (caught) {
+  //       notify(caught.message, "error");
+  //     } finally {
+  //       setUploading(false);
+  //     }
+  //   },
+  //   [caseData, token, notify],
+  // );
 
   const save = useCallback(
     async (comments = {}) => {
