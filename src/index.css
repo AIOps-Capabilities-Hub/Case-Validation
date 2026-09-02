@@ -276,8 +276,11 @@ button:disabled {
 .requirement-head,
 .requirement-row {
   display: grid;
-  grid-template-columns: 200px 180px minmax(260px, 1.8fr) 110px 110px 180px;
-  min-width: 1040px;
+  grid-template-columns: 180px 160px minmax(
+      220px,
+      1.5fr
+    ) 110px 110px 160px 180px;
+  min-width: 1120px;
   align-items: center;
 }
 

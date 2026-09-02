@@ -64,29 +64,29 @@ const apiResponse = async (response, message) => {
   throw new Error(detail);
 };
 
-const dateValue = (value, fallback) => {
-  if (!value) return fallback;
-  if (typeof value === "string" && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value))
-    return value;
-  try {
-    return new Date(value).toLocaleDateString("en-US");
-  } catch {
-    return value;
-  }
-};
+// const dateValue = (value, fallback) => {
+//   if (!value) return fallback;
+//   if (typeof value === "string" && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value))
+//     return value;
+//   try {
+//     return new Date(value).toLocaleDateString("en-US");
+//   } catch {
+//     return value;
+//   }
+// };
 
-const contentValue = (content, keys, fallback) => {
-  for (const key of keys) {
-    if (
-      content?.[key] !== undefined &&
-      content?.[key] !== null &&
-      content[key] !== ""
-    ) {
-      return content[key];
-    }
-  }
-  return fallback;
-};
+// const contentValue = (content, keys, fallback) => {
+//   for (const key of keys) {
+//     if (
+//       content?.[key] !== undefined &&
+//       content?.[key] !== null &&
+//       content[key] !== ""
+//     ) {
+//       return content[key];
+//     }
+//   }
+//   return fallback;
+// };
 
 function Header({ step, caseData, onHome }) {
   return (
@@ -559,7 +559,24 @@ function CaseList({ cases, onSelect, onBack }) {
   );
 }
 
-function RequirementRow({ item, comment, onComment }) {
+function RequirementRow({
+  item,
+  comment,
+  onComment,
+  attachments = [],
+  onUpload,
+  uploading,
+}) {
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) {
+      await onUpload(item.name, file);
+    }
+  };
+
   return (
     <div className="requirement-row">
       <div className="requirement-name">{item.name}</div>
@@ -578,6 +595,38 @@ function RequirementRow({ item, comment, onComment }) {
           aria-label={`${item.name} beneficiary comments`}
         />
       </div>
+      <div
+        className="attachment-cell"
+        style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileChange}
+          hidden
+        />
+        <button
+          type="button"
+          className="outline-button"
+          style={{ fontSize: "11px", padding: "4px 8px" }}
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? "UPLOADING..." : "ATTACH CONTENT"}
+        </button>
+        {attachments.length > 0 && (
+          <div
+            className="row-attachment-list"
+            style={{ fontSize: "12px", color: "var(--muted)" }}
+          >
+            {attachments.map((att) => (
+              <div key={att.id} style={{ wordBreak: "break-all" }}>
+                📎 {att.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -588,45 +637,48 @@ function CaseDetail({
   onSave,
   onBack,
   submitting,
-  onUpload,
-  uploading,
-  attachments,
+  onUploadRowAttachment,
+  rowUploading,
+  rowAttachments,
   submitError,
 }) {
-  const inputRef = useRef(null);
   const [comments, setComments] = useState({});
-  const content = caseData?.content || {};
+  // const content = caseData?.content || {};
   const requirements = caseData?.requirements || [];
+  const tableHeaders = caseData?.tableHeaders?.length
+    ? caseData.tableHeaders
+    : [
+        "Requirement",
+        "Requirement Detail",
+        "NIGO Correction Details",
+        "Document Status",
+        "WorkBench Status",
+        "Beneficiary Comments",
+        "Attachment",
+      ];
   const assignment = caseData?.assignments?.[0];
   const action = assignment?.actions?.[0];
 
-  const chooseFile = () => inputRef.current?.click();
-  const handleFile = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (file) await onUpload(file);
-  };
-
-  const claimType = contentValue(
-    content,
-    ["claimType", "ClaimType", "pyClaimType"],
-    "",
-  );
-  const claimSubType = contentValue(
-    content,
-    ["claimSubType", "ClaimSubType", "pyClaimSubType"],
-    "",
-  );
-  const claimSource = contentValue(
-    content,
-    ["claimSource", "ClaimSource", "pyClaimSource"],
-    "",
-  );
-  const deathDate = contentValue(
-    content,
-    ["dateOfDeath", "DateOfDeath", "pyDateOfDeath"],
-    "",
-  );
+  // const claimType = contentValue(
+  //   content,
+  //   ["claimType", "ClaimType", "pyClaimType"],
+  //   "",
+  // );
+  // const claimSubType = contentValue(
+  //   content,
+  //   ["claimSubType", "ClaimSubType", "pyClaimSubType"],
+  //   "",
+  // );
+  // const claimSource = contentValue(
+  //   content,
+  //   ["claimSource", "ClaimSource", "pyClaimSource"],
+  //   "",
+  // );
+  // const deathDate = contentValue(
+  //   content,
+  //   ["dateOfDeath", "DateOfDeath", "pyDateOfDeath"],
+  //   "",
+  // );
 
   return (
     <main className="page-shell detail-page">
@@ -665,28 +717,6 @@ function CaseDetail({
         </div>
       </div>
 
-      {/* <section className="case-information">
-        <h1>Beneficiary Case Information</h1>
-        <div className="information-grid">
-          <div>
-            <span>Claim Type</span>
-            <strong>{claimType}</strong>
-          </div>
-          <div>
-            <span>Claim Sub Type</span>
-            <strong>{claimSubType}</strong>
-          </div>
-          <div>
-            <span>Claim Source</span>
-            <strong>{claimSource}</strong>
-          </div>
-          <div>
-            <span>Date of Death</span>
-            <strong>{dateValue(deathDate, "")}</strong>
-          </div>
-        </div>
-      </section> */}
-
       <section className="fulfillment-section">
         <div className="section-title-block">
           <h2>Awaiting Fulfillment</h2>
@@ -695,12 +725,9 @@ function CaseDetail({
 
         <div className="requirements-table">
           <div className="requirement-head">
-            <span>Requirement</span>
-            <span>Requirement Detail</span>
-            <span>NIGO Correction Details</span>
-            <span>Document Status</span>
-            <span>WorkBench Status</span>
-            <span>Beneficiary Comments</span>
+            {tableHeaders.map((headerText, idx) => (
+              <span key={idx}>{headerText}</span>
+            ))}
           </div>
           {requirements.map((item) => (
             <RequirementRow
@@ -710,34 +737,11 @@ function CaseDetail({
               onComment={(value) =>
                 setComments((current) => ({ ...current, [item.name]: value }))
               }
+              attachments={rowAttachments[item.name] || []}
+              onUpload={onUploadRowAttachment}
+              uploading={rowUploading[item.name]}
             />
           ))}
-        </div>
-
-        <div className="attachment-area">
-          <input ref={inputRef} type="file" onChange={handleFile} hidden />
-          <div className="attach-row">
-            <button
-              className="outline-button"
-              onClick={chooseFile}
-              disabled={uploading}
-            >
-              ATTACH CONTENT
-            </button>
-            {uploading && (
-              <span className="upload-status">
-                <span className="loader loader--sm" />
-                <span className="upload-label">Uploading…</span>
-              </span>
-            )}
-          </div>
-          {attachments.length > 0 && (
-            <div className="attachment-list">
-              {attachments.map((attachment) => (
-                <span key={attachment.id}>{attachment.name}</span>
-              ))}
-            </div>
-          )}
         </div>
       </section>
 
@@ -890,6 +894,7 @@ export default function App() {
           console.warn("Failed to fetch case details:", e);
         }
 
+        let tableHeaders = [];
         let requirements = [];
         const metaResponse = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}/actions/AwaitingFulfillment`,
@@ -903,6 +908,14 @@ export default function App() {
 
         if (metaResponse.ok) {
           const metaResult = await metaResponse.json();
+
+          const headerGroups =
+            metaResult?.view?.groups?.[1]?.layout?.header?.groups || [];
+          if (Array.isArray(headerGroups) && headerGroups.length > 0) {
+            tableHeaders = headerGroups
+              .map((g) => g?.caption?.value || "")
+              .filter(Boolean);
+          }
 
           const rows = metaResult?.view?.groups?.[1]?.layout?.rows || [];
           if (Array.isArray(rows) && rows.length > 0) {
@@ -1030,6 +1043,7 @@ export default function App() {
             "",
           ID: caseDetails.ID || caseID || caseRef,
           requirements,
+          tableHeaders,
           assignments: [
             {
               ID: assignmentId,
@@ -1098,6 +1112,85 @@ export default function App() {
     }
   }, [recover]);
 
+  const [rowUploading, setRowUploading] = useState({});
+  const [rowAttachments, setRowAttachments] = useState({});
+
+  const uploadRowAttachment = useCallback(
+    async (requirementName, file) => {
+      if (!caseData?.ID) return;
+      setRowUploading((prev) => ({ ...prev, [requirementName]: true }));
+      try {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("contextId", caseData.ID);
+        form.append("appendUniqueIdToFileName", "true");
+        const uploadResponse = await fetch(
+          `${UPLOAD_BASE}/attachments/upload`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+            body: form,
+          },
+        );
+        const uploadResult = await apiResponse(
+          uploadResponse,
+          "Attachment upload failed.",
+        );
+        const uploadId = uploadResult?.ID || uploadResult?.id;
+
+        if (!uploadId) {
+          throw new Error("No upload ID returned from server.");
+        }
+
+        const attachResponse = await fetch(
+          `${NEW_ASSIGN_BASE}/cases/${encodeId(caseData.ID)}/attachments`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              attachments: [
+                {
+                  attachmentFieldName: "ClaimantResponseAttachments",
+                  category: "File",
+                  ID: uploadId,
+                  type: "File",
+                  name: file.name,
+                },
+              ],
+            }),
+          },
+        );
+        const attachResult = await apiResponse(
+          attachResponse,
+          "Case attachment association failed.",
+        );
+        const finalId = attachResult?.ID || attachResult?.id || uploadId;
+
+        const attachmentObj = {
+          attachmentFieldName: "ClaimantResponseAttachments",
+          category: "File",
+          ID: finalId,
+          type: "File",
+          name: file.name,
+        };
+
+        setRowAttachments((prev) => ({
+          ...prev,
+          [requirementName]: [...(prev[requirementName] || []), attachmentObj],
+        }));
+        notify(`Attachment uploaded for ${requirementName}`);
+      } catch (caught) {
+        notify(caught.message, "error");
+      } finally {
+        setRowUploading((prev) => ({ ...prev, [requirementName]: false }));
+      }
+    },
+    [caseData, token, notify],
+  );
+
   const uploadAttachment = useCallback(
     async (file) => {
       if (!caseData?.ID) return;
@@ -1136,7 +1229,7 @@ export default function App() {
             body: JSON.stringify({
               attachments: [
                 {
-                  attachmentFieldName: "ResponseAttachments",
+                  attachmentFieldName: "ClaimantResponseAttachments",
                   category: "File",
                   ID: uploadId,
                   type: "File",
@@ -1184,9 +1277,16 @@ export default function App() {
             headers,
             body: JSON.stringify({
               content: {
-                NIGORequirementList: reqs.map((req) => ({
-                  BeneficiaryComments: comments[req.name] || "",
-                })),
+                NIGORequirementList: reqs.map((req) => {
+                  const reqAtts = rowAttachments[req.name] || [];
+                  const rowPayload = {
+                    BeneficiaryComments: comments[req.name] || "",
+                  };
+                  if (reqAtts.length > 0) {
+                    rowPayload.attachments = reqAtts;
+                  }
+                  return rowPayload;
+                }),
               },
             }),
           },
@@ -1199,7 +1299,7 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [assignmentId, token, ifMatch, caseData, notify],
+    [assignmentId, token, ifMatch, caseData, rowAttachments, notify],
   );
 
   const submit = useCallback(
@@ -1231,9 +1331,16 @@ export default function App() {
             headers,
             body: JSON.stringify({
               content: {
-                NIGORequirementList: reqs.map((req) => ({
-                  BeneficiaryComments: comments[req.name] || "",
-                })),
+                NIGORequirementList: reqs.map((req) => {
+                  const reqAtts = rowAttachments[req.name] || [];
+                  const rowPayload = {
+                    BeneficiaryComments: comments[req.name] || "",
+                  };
+                  if (reqAtts.length > 0) {
+                    rowPayload.attachments = reqAtts;
+                  }
+                  return rowPayload;
+                }),
               },
             }),
             signal: controller.signal,
@@ -1279,7 +1386,7 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [assignmentId, token, ifMatch, caseData, notify],
+    [assignmentId, token, ifMatch, caseData, rowAttachments, notify],
   );
 
   const home = () => {
@@ -1331,6 +1438,9 @@ export default function App() {
           onUpload={uploadAttachment}
           uploading={uploading}
           attachments={attachments}
+          onUploadRowAttachment={uploadRowAttachment}
+          rowUploading={rowUploading}
+          rowAttachments={rowAttachments}
           submitError={submitError}
         />
       )}
