@@ -901,7 +901,7 @@ export default function App() {
     async (caseItem, passedToken) => {
       setStep("LOADING");
       setError("");
-      setAttachments([]);
+      // setAttachments([]);
       setSubmitError("");
       try {
         const assignmentId = caseItem.pzInsKey;
@@ -1300,7 +1300,7 @@ export default function App() {
   //   [caseData, token, notify],
   // );
 
-  const save = useCallback(
+        const save = useCallback(
     async (comments = {}) => {
       if (!assignmentId) return;
       setSubmitting(true);
@@ -1318,16 +1318,9 @@ export default function App() {
             headers,
             body: JSON.stringify({
               content: {
-                NIGORequirementList: reqs.map((req) => {
-                  const reqAtts = rowAttachments[req.name] || [];
-                  const rowPayload = {
-                    BeneficiaryComments: comments[req.name] || "",
-                  };
-                  if (reqAtts.length > 0) {
-                    rowPayload.attachments = reqAtts;
-                  }
-                  return rowPayload;
-                }),
+                NIGORequirementList: reqs.map((req) => ({
+                  BeneficiaryComments: comments[req.name] || "",
+                })),
               },
             }),
           },
@@ -1372,16 +1365,9 @@ export default function App() {
             headers,
             body: JSON.stringify({
               content: {
-                NIGORequirementList: reqs.map((req) => {
-                  const reqAtts = rowAttachments[req.name] || [];
-                  const rowPayload = {
-                    BeneficiaryComments: comments[req.name] || "",
-                  };
-                  if (reqAtts.length > 0) {
-                    rowPayload.attachments = reqAtts;
-                  }
-                  return rowPayload;
-                }),
+                NIGORequirementList: reqs.map((req) => ({
+                  BeneficiaryComments: comments[req.name] || "",
+                })),
               },
             }),
             signal: controller.signal,
