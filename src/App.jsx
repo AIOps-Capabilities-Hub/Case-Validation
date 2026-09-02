@@ -597,7 +597,13 @@ function RequirementRow({
       </div>
       <div
         className="attachment-cell"
-        style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
         <input
           ref={fileInputRef}
@@ -607,20 +613,58 @@ function RequirementRow({
         />
         <button
           type="button"
-          className="outline-button"
-          style={{ fontSize: "11px", padding: "4px 8px" }}
+          className="icon-upload-button"
+          style={{
+            background: "transparent",
+            border: "1px solid #cbd5e1",
+            borderRadius: "6px",
+            padding: "6px 10px",
+            cursor: uploading ? "not-allowed" : "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "12px",
+            color: "var(--blue)",
+            transition: "all 0.15s ease",
+          }}
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
+          title="Upload attachment"
+          aria-label="Upload attachment"
         >
-          {uploading ? "UPLOADING..." : "ATTACH CONTENT"}
+          {uploading ? (
+            <span
+              className="loader loader--sm"
+              style={{ width: "14px", height: "14px" }}
+            />
+          ) : (
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          )}
         </button>
         {attachments.length > 0 && (
           <div
             className="row-attachment-list"
-            style={{ fontSize: "12px", color: "var(--muted)" }}
+            style={{
+              fontSize: "11px",
+              color: "var(--muted)",
+              textAlign: "center",
+            }}
           >
             {attachments.map((att) => (
-              <div key={att.id} style={{ wordBreak: "break-all" }}>
+              <div key={att.id || att.name} style={{ wordBreak: "break-all" }}>
                 📎 {att.name}
               </div>
             ))}
@@ -1373,14 +1417,7 @@ export default function App() {
             "error",
           );
         } else {
-          sessionStorage.setItem(
-            "case-validation-pending-reload",
-            JSON.stringify({
-              caseKey: caseData?.ID || assignmentId,
-              messages: [caught.message],
-            }),
-          );
-          window.location.reload();
+          setSubmitError(caught.message);
         }
       } finally {
         setSubmitting(false);
@@ -1435,9 +1472,6 @@ export default function App() {
           onSave={save}
           onBack={() => setStep("CASE_LIST")}
           submitting={submitting}
-          onUpload={uploadAttachment}
-          uploading={uploading}
-          attachments={attachments}
           onUploadRowAttachment={uploadRowAttachment}
           rowUploading={rowUploading}
           rowAttachments={rowAttachments}
