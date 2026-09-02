@@ -1197,7 +1197,7 @@ export default function App() {
             body: JSON.stringify({
               attachments: [
                 {
-                  attachmentFieldName: "ClaimantResponseAttachments",
+                  attachmentFieldName: "ResponseAttachments",
                   category: "File",
                   ID: uploadId,
                   type: "File",
@@ -1214,7 +1214,7 @@ export default function App() {
         const finalId = attachResult?.ID || attachResult?.id || uploadId;
 
         const attachmentObj = {
-          attachmentFieldName: "ClaimantResponseAttachments",
+          attachmentFieldName: "ResponseAttachments",
           category: "File",
           ID: finalId,
           type: "File",
@@ -1273,7 +1273,7 @@ export default function App() {
             body: JSON.stringify({
               attachments: [
                 {
-                  attachmentFieldName: "ClaimantResponseAttachments",
+                  attachmentFieldName: "ResponseAttachments",
                   category: "File",
                   ID: uploadId,
                   type: "File",
