@@ -1425,9 +1425,14 @@ export default function App() {
             headers,
             body: JSON.stringify({
               content: {
-                NIGORequirementList: reqs.map((req) => ({
-                  BeneficiaryComments: comments[req.name] || "",
-                })),
+                NIGORequirementList: reqs.map((req) => {
+                  const reqAtts = rowAttachments[req.name] || [];
+                  return {
+                    BeneficiaryComments: comments[req.name] || "",
+                    RequirementAttachmentKeyValue:
+                      reqAtts.length > 0 && reqAtts[0]?.ID ? reqAtts[0].ID : null,
+                  };
+                }),
               },
             }),
           },
@@ -1466,12 +1471,6 @@ export default function App() {
 
         const reqs = caseData?.requirements || [];
 
-        // Collect all uploaded attachments across rows for the submit payload.
-        // Strip internal-only preview fields (base64, mimeType) before sending.
-        const allAttachments = Object.values(rowAttachments)
-          .flat()
-          .map(({ base64: _b, mimeType: _m, ...rest }) => rest);
-
         const response = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?actionID=AwaitingFulfillment`,
           {
@@ -1479,11 +1478,13 @@ export default function App() {
             headers,
             body: JSON.stringify({
               content: {
-                NIGORequirementList: reqs.map((req) => ({
-                  BeneficiaryComments: comments[req.name] || "",
-                })),
-                ...(allAttachments.length > 0 && {
-                  ClaimantResponseAttachments: allAttachments,
+                NIGORequirementList: reqs.map((req) => {
+                  const reqAtts = rowAttachments[req.name] || [];
+                  return {
+                    BeneficiaryComments: comments[req.name] || "",
+                    RequirementAttachmentKeyValue:
+                      reqAtts.length > 0 && reqAtts[0]?.ID ? reqAtts[0].ID : null,
+                  };
                 }),
               },
             }),
