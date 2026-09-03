@@ -573,6 +573,8 @@ function RequirementRow({
   onUpload,
   uploading,
   onDownload,
+  onDelete,
+  deleting = false,
 }) {
   const fileInputRef = useRef(null);
 
@@ -585,7 +587,7 @@ function RequirementRow({
   };
 
   const effectiveAttachments =
-    attachments && attachments.length > 0
+    attachments !== undefined && attachments !== null
       ? attachments
       : item.attachmentKeyValue
         ? [
@@ -691,40 +693,87 @@ function RequirementRow({
               const isPdf =
                 att.mimeType === "application/pdf" || /\.pdf$/i.test(att.name);
 
-              const renderDownloadButton = () => (
-                <button
-                  type="button"
-                  className="icon-download-button"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    padding: "2px 4px",
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "var(--blue)",
-                    marginLeft: "4px",
-                  }}
-                  onClick={() => onDownload && onDownload(att)}
-                  title="Download document"
-                  aria-label="Download document"
-                >
-                  <svg
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+              const renderActions = () => (
+                <>
+                  <button
+                    type="button"
+                    className="icon-download-button"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      padding: "2px 4px",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--blue)",
+                      marginLeft: "4px",
+                    }}
+                    onClick={() => onDownload && onDownload(att)}
+                    title="Download document"
+                    aria-label="Download document"
                   >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                </button>
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  </button>
+                  {onDelete && (
+                    <button
+                      type="button"
+                      className="icon-delete-button"
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        padding: "2px 4px",
+                        cursor: deleting ? "not-allowed" : "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#ef4444",
+                        marginLeft: "2px",
+                        opacity: deleting ? 0.5 : 1,
+                      }}
+                      onClick={() => onDelete(item.name, att)}
+                      disabled={deleting}
+                      title="Delete attachment"
+                      aria-label="Delete attachment"
+                    >
+                      {deleting ? (
+                        <span
+                          className="loader loader--sm"
+                          style={{ width: "12px", height: "12px" }}
+                        />
+                      ) : (
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                </>
               );
 
               if (att.base64 && isImage) {
@@ -753,7 +802,7 @@ function RequirementRow({
                       }}
                     >
                       <span style={{ wordBreak: "break-all" }}>{att.name}</span>
-                      {renderDownloadButton()}
+                      {renderActions()}
                     </div>
                   </div>
                 );
@@ -787,12 +836,12 @@ function RequirementRow({
                     >
                       📄 {att.name}
                     </a>
-                    {renderDownloadButton()}
+                    {renderActions()}
                   </div>
                 );
               }
 
-              // Fallback: filename with paperclip icon + download button
+              // Fallback: filename with paperclip icon + action buttons
               return (
                 <div
                   key={att.ID || att.name}
@@ -805,7 +854,7 @@ function RequirementRow({
                   }}
                 >
                   <span>📎 {att.name}</span>
-                  {renderDownloadButton()}
+                  {renderActions()}
                 </div>
               );
             })}
@@ -827,21 +876,21 @@ function CaseDetail({
   rowAttachments,
   submitError,
   onDownload,
+  onDeleteAttachment,
+  rowDeleting = {},
 }) {
-  const [comments, setComments] = useState({});
   const requirements = caseData?.requirements || [];
-
-  useEffect(() => {
-    if (requirements && requirements.length > 0) {
-      const initialComments = {};
-      requirements.forEach((req) => {
+  const [comments, setComments] = useState(() => {
+    const initialComments = {};
+    if (caseData?.requirements && Array.isArray(caseData.requirements)) {
+      caseData.requirements.forEach((req) => {
         if (req.beneficiaryComments) {
           initialComments[req.name] = req.beneficiaryComments;
         }
       });
-      setComments((prev) => ({ ...initialComments, ...prev }));
     }
-  }, [requirements]);
+    return initialComments;
+  });
 
   const tableHeaders = caseData?.tableHeaders?.length
     ? caseData.tableHeaders
@@ -856,27 +905,6 @@ function CaseDetail({
       ];
   const assignment = caseData?.assignments?.[0];
   const action = assignment?.actions?.[0];
-
-  // const claimType = contentValue(
-  //   content,
-  //   ["claimType", "ClaimType", "pyClaimType"],
-  //   "",
-  // );
-  // const claimSubType = contentValue(
-  //   content,
-  //   ["claimSubType", "ClaimSubType", "pyClaimSubType"],
-  //   "",
-  // );
-  // const claimSource = contentValue(
-  //   content,
-  //   ["claimSource", "ClaimSource", "pyClaimSource"],
-  //   "",
-  // );
-  // const deathDate = contentValue(
-  //   content,
-  //   ["dateOfDeath", "DateOfDeath", "pyDateOfDeath"],
-  //   "",
-  // );
 
   return (
     <main className="page-shell detail-page">
@@ -939,10 +967,12 @@ function CaseDetail({
               onComment={(value) =>
                 setComments((current) => ({ ...current, [item.name]: value }))
               }
-              attachments={rowAttachments[item.name] || []}
+              attachments={rowAttachments[item.name]}
               onUpload={onUploadRowAttachment}
               uploading={rowUploading[item.name]}
               onDownload={onDownload}
+              onDelete={onDeleteAttachment}
+              deleting={rowDeleting[item.name]}
             />
           ))}
         </div>
@@ -996,9 +1026,9 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [noticeType, setNoticeType] = useState("success");
   const [submitting, setSubmitting] = useState(false);
-  // const [uploading, setUploading] = useState(false);
-  // const [attachments, setAttachments] = useState([]);
   const [submitError, setSubmitError] = useState("");
+  const [rowUploading, setRowUploading] = useState({});
+  const [rowAttachments, setRowAttachments] = useState({});
 
   const notify = useCallback((message, type = "success") => {
     setNotice(message);
@@ -1527,9 +1557,6 @@ export default function App() {
     }
   }, [recover]);
 
-  const [rowUploading, setRowUploading] = useState({});
-  const [rowAttachments, setRowAttachments] = useState({});
-
   const uploadRowAttachment = useCallback(
     async (requirementName, file) => {
       if (!caseData?.ID) return;
@@ -1585,29 +1612,42 @@ export default function App() {
           "Case attachment association failed.",
         );
 
-        // Step 3: Call D_GetAttachmentDetails data view to get pxLinkedRefTo
-        const dataViewResponse = await fetch(
-          `${API_BASE}/data_views/D_GetAttachmentDetails`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              dataViewParameters: {
-                LinkRefFrom: caseData.ID,
-                Memo: file.name,
+        // Step 3: Call D_GetAttachmentDetails data view to get pzInsKey and pxLinkedRefTo
+        let pzInsKey = null;
+        let linkedRefTo = uploadId;
+        try {
+          const dataViewResponse = await fetch(
+            `${API_BASE}/data_views/D_GetAttachmentDetails`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
-            }),
-          },
-        );
-        const dataViewResult = await apiResponse(
-          dataViewResponse,
-          "Failed to fetch attachment details.",
-        );
-        const linkedRefTo =
-          dataViewResult?.data?.[0]?.pxLinkedRefTo || uploadId;
+              body: JSON.stringify({
+                dataViewParameters: {
+                  LinkRefFrom: caseData.ID,
+                  Memo: file.name,
+                },
+              }),
+            },
+          );
+          const dataViewResult = await apiResponse(
+            dataViewResponse,
+            "Failed to fetch attachment details.",
+          );
+          if (dataViewResult?.data?.[0]) {
+            pzInsKey = dataViewResult.data[0].pzInsKey || null;
+            if (dataViewResult.data[0].pxLinkedRefTo) {
+              linkedRefTo = dataViewResult.data[0].pxLinkedRefTo;
+            }
+          }
+        } catch (e) {
+          console.warn(
+            "Could not retrieve attachment pzInsKey/pxLinkedRefTo details:",
+            e,
+          );
+        }
 
         // Step 4: Fetch the base64 content of the attachment
         let base64Content = null;
@@ -1627,7 +1667,7 @@ export default function App() {
                 contentResult?.pyAttachData ??
                 (typeof contentResult === "string" ? contentResult : null);
               mimeType = contentResult?.mimeType ?? contentResult?.type ?? null;
-            } catch (_e) {
+            } catch {
               base64Content = rawText.trim().replace(/^"|"$/g, "");
             }
           }
@@ -1639,6 +1679,7 @@ export default function App() {
           attachmentFieldName: "ClaimantResponseAttachments",
           category: "File",
           ID: linkedRefTo,
+          pzInsKey,
           type: "File",
           name: file.name,
           base64: base64Content,
@@ -1647,7 +1688,7 @@ export default function App() {
 
         setRowAttachments((prev) => ({
           ...prev,
-          [requirementName]: [...(prev[requirementName] || []), attachmentObj],
+          [requirementName]: [attachmentObj], // Restrict to only one attachment
         }));
         notify(`Attachment uploaded for ${requirementName}`);
       } catch (caught) {
@@ -1656,7 +1697,83 @@ export default function App() {
         setRowUploading((prev) => ({ ...prev, [requirementName]: false }));
       }
     },
-    [caseData, token, notify],
+    [caseData, token, notify, setRowAttachments, setRowUploading],
+  );
+
+  const [rowDeleting, setRowDeleting] = useState({});
+
+  const handleDeleteAttachment = useCallback(
+    async (requirementName, att) => {
+      let pzKey = att?.pzInsKey;
+
+      if (!pzKey && caseData?.ID && att?.name) {
+        try {
+          notify("Retrieving attachment metadata…");
+          const dataViewResponse = await fetch(
+            `${API_BASE}/data_views/D_GetAttachmentDetails`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                dataViewParameters: {
+                  LinkRefFrom: caseData.ID,
+                  Memo: att.name,
+                },
+              }),
+            },
+          );
+          if (dataViewResponse.ok) {
+            const dataViewResult = await dataViewResponse.json();
+            pzKey = dataViewResult?.data?.[0]?.pzInsKey || null;
+          }
+        } catch (e) {
+          console.warn("Failed to retrieve pzInsKey from data view:", e);
+        }
+      }
+
+      if (!pzKey) {
+        notify("Cannot delete attachment: pzInsKey not found", "error");
+        return;
+      }
+
+      setRowDeleting((prev) => ({ ...prev, [requirementName]: true }));
+      try {
+        notify("Deleting attachment…");
+        const deleteResponse = await fetch(
+          `${NEW_ASSIGN_BASE}/attachments/${encodeId(pzKey)}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        await apiResponse(deleteResponse, "Failed to delete attachment.");
+
+        setRowAttachments((prev) => {
+          const currentList = prev[requirementName] || [];
+          const updatedList = currentList.filter(
+            (item) =>
+              item.pzInsKey !== pzKey &&
+              item.ID !== att.ID &&
+              item.name !== att.name,
+          );
+          return {
+            ...prev,
+            [requirementName]: updatedList,
+          };
+        });
+        notify(`Attachment deleted for ${requirementName}`);
+      } catch (caught) {
+        notify(caught.message || "Failed to delete attachment", "error");
+      } finally {
+        setRowDeleting((prev) => ({ ...prev, [requirementName]: false }));
+      }
+    },
+    [caseData, token, notify, setRowAttachments, setRowDeleting],
   );
 
   const handleDownloadAttachment = useCallback(
@@ -1731,7 +1848,7 @@ export default function App() {
             fileName = result.name || result.fileName;
           if (result?.mimeType || result?.type)
             mimeType = result.mimeType || result.type;
-        } catch (_err) {
+        } catch {
           b64 = rawText.trim().replace(/^"|"$/g, "");
         }
 
@@ -2023,6 +2140,8 @@ export default function App() {
           rowAttachments={rowAttachments}
           submitError={submitError}
           onDownload={handleDownloadAttachment}
+          onDeleteAttachment={handleDeleteAttachment}
+          rowDeleting={rowDeleting}
         />
       )}
       {step === "SUCCESS" && (
