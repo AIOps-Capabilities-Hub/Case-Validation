@@ -1322,6 +1322,129 @@ export default function App() {
           ],
         };
 
+        // Pre-fetch the case's attachment list (includes real filenames + IDs),
+        // then cross-reference each requirement's attachmentKeyValue to recover
+        // the original filename so the download button shows it correctly after
+        // a page refresh (rowAttachments is in-memory and resets on reload).
+        const requirementsWithAttachment = requirements.filter(
+          (r) => r.attachmentKeyValue,
+        );
+        if (requirementsWithAttachment.length > 0) {
+          const currentToken = activeToken;
+          (async () => {
+            try {
+              // Step 1: fetch the attachment list for this case — contains names + IDs.
+              // Try both base URLs since env config may differ.
+              let listRes = await fetch(
+                `${API_BASE}/cases/${encodeId(caseID)}/attachments`,
+                { headers: { Authorization: `Bearer ${currentToken}` } },
+              );
+              // Fallback to NEW_ASSIGN_BASE if the first URL fails
+              if (!listRes.ok && NEW_ASSIGN_BASE !== API_BASE) {
+                listRes = await fetch(
+                  `${NEW_ASSIGN_BASE}/cases/${encodeId(caseID)}/attachments`,
+                  { headers: { Authorization: `Bearer ${currentToken}` } },
+                );
+              }
+              let attachmentList = [];
+              if (listRes.ok) {
+                const listData = await listRes.json();
+                // Pega returns { attachments: [...] } or { data: [...] }
+                attachmentList =
+                  listData?.attachments ||
+                  listData?.data ||
+                  (Array.isArray(listData) ? listData : []);
+                console.log("[AttachPrefetch] caseID:", caseID);
+                console.log("[AttachPrefetch] raw API response:", listData);
+                console.log(
+                  "[AttachPrefetch] parsed attachmentList:",
+                  attachmentList,
+                );
+              } else {
+                console.warn(
+                  "[AttachPrefetch] Attachments list API failed:",
+                  listRes.status,
+                  listRes.statusText,
+                );
+              }
+
+              // Build a lookup by ID fields
+              const byId = {};
+              attachmentList.forEach((a) => {
+                [a?.ID, a?.pzInsKey, a?.id, a?.pyAttachmentID, a?.attachmentID]
+                  .filter(Boolean)
+                  .forEach((id) => {
+                    byId[id] = a;
+                  });
+              });
+
+              // Extract the seconds-level timestamp from a Pega key, e.g.:
+              //   "DATA-WORKATTACH-FILE ...!20260903T125105.039 GMT" → "20260903T125105"
+              //   "LINK-ATTACHMENT ...!20260903T125105.042 GMT"      → "20260903T125105"
+              // The prefix (DATA-WORKATTACH-FILE vs LINK-ATTACHMENT) and milliseconds differ,
+              // but the date+time seconds portion is always the same — use that to match.
+              const getSecondsTs = (str) => {
+                const m = (str || "").match(/!(\d{8}T\d{6})/);
+                return m ? m[1] : null;
+              };
+
+              const prefilled = {};
+              requirementsWithAttachment.forEach((req) => {
+                const key = req.attachmentKeyValue;
+                const keyTs = getSecondsTs(key);
+
+                const matched =
+                  byId[key] || // exact match (unlikely given different prefixes, but try first)
+                  (keyTs &&
+                    attachmentList.find((a) => {
+                      const aId = a?.ID || a?.pzInsKey || a?.id || "";
+                      return getSecondsTs(aId) === keyTs;
+                    }));
+
+                const realName =
+                  (
+                    matched?.name ||
+                    matched?.fileName ||
+                    matched?.pyAttachName ||
+                    ""
+                  ).trim() || null;
+
+                // Only populate prefilled if we got a real name.
+                // If no match, leave rowAttachments empty so RequirementRow falls
+                // back to the hardcoded "Attachment" entry from item.attachmentKeyValue.
+                if (!realName) return;
+
+                let mimeType =
+                  matched?.mimeType ||
+                  matched?.type ||
+                  "application/octet-stream";
+                if (mimeType === "application/octet-stream") {
+                  if (/\.pdf$/i.test(realName)) mimeType = "application/pdf";
+                  else if (/\.png$/i.test(realName)) mimeType = "image/png";
+                  else if (/\.jpe?g$/i.test(realName)) mimeType = "image/jpeg";
+                  else if (/\.gif$/i.test(realName)) mimeType = "image/gif";
+                }
+
+                prefilled[req.name] = [
+                  {
+                    ID: key,
+                    name: realName,
+                    attachmentKeyValue: key,
+                    base64: null, // fetched on demand when user clicks download
+                    mimeType,
+                  },
+                ];
+              });
+
+              if (Object.keys(prefilled).length > 0) {
+                setRowAttachments((prev) => ({ ...prefilled, ...prev }));
+              }
+            } catch (e) {
+              console.warn("Could not pre-fetch attachment names:", e);
+            }
+          })();
+        }
+
         setCaseData(mergedCaseData);
         setStep("CASE_DETAIL");
       } catch (caught) {
