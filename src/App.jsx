@@ -1473,10 +1473,18 @@ export default function App() {
             { headers: { Authorization: `Bearer ${token}` } },
           );
           if (contentResponse.ok) {
-            const contentResult = await contentResponse.json();
-            base64Content =
-              contentResult?.content ?? contentResult?.data ?? null;
-            mimeType = contentResult?.mimeType ?? contentResult?.type ?? null;
+            const rawText = await contentResponse.text();
+            try {
+              const contentResult = JSON.parse(rawText);
+              base64Content =
+                contentResult?.content ??
+                contentResult?.data ??
+                contentResult?.pyAttachData ??
+                (typeof contentResult === "string" ? contentResult : null);
+              mimeType = contentResult?.mimeType ?? contentResult?.type ?? null;
+            } catch (_e) {
+              base64Content = rawText.trim().replace(/^"|"$/g, "");
+            }
           }
         } catch (e) {
           console.warn("Could not fetch attachment content for preview:", e);
@@ -1515,13 +1523,22 @@ export default function App() {
           for (let i = 0; i < byteChars.length; i++) {
             byteNums[i] = byteChars.charCodeAt(i);
           }
-          const blob = new Blob([new Uint8Array(byteNums)], {
-            type: att.mimeType || "application/octet-stream",
-          });
+          let mType = att.mimeType || "application/octet-stream";
+          if (
+            mType === "application/octet-stream" &&
+            att.base64.startsWith("JVBERi")
+          ) {
+            mType = "application/pdf";
+          }
+          const blob = new Blob([new Uint8Array(byteNums)], { type: mType });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
-          a.download = att.name || "attachment";
+          let fName = att.name || "attachment";
+          if (mType === "application/pdf" && !fName.endsWith(".pdf")) {
+            fName += ".pdf";
+          }
+          a.download = fName;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -1552,14 +1569,36 @@ export default function App() {
           { headers: { Authorization: `Bearer ${token}` } },
         );
         if (!res.ok) throw new Error("Failed to fetch attachment file.");
-        const result = await res.json();
-        const b64 = result?.content || result?.data;
+
+        const rawText = await res.text();
+        let b64 = null;
+        let fileName = att.name || "attachment";
+        let mimeType = att.mimeType || "application/octet-stream";
+
+        try {
+          const result = JSON.parse(rawText);
+          b64 =
+            result?.content ||
+            result?.data ||
+            result?.pyAttachData ||
+            (typeof result === "string" ? result : null);
+          if (result?.name || result?.fileName)
+            fileName = result.name || result.fileName;
+          if (result?.mimeType || result?.type)
+            mimeType = result.mimeType || result.type;
+        } catch (_err) {
+          b64 = rawText.trim().replace(/^"|"$/g, "");
+        }
+
         if (!b64) throw new Error("Attachment content is empty.");
 
-        const fileName =
-          result?.name || result?.fileName || att.name || "attachment";
-        const mimeType =
-          result?.mimeType || result?.type || "application/octet-stream";
+        if (
+          mimeType === "application/octet-stream" &&
+          b64.startsWith("JVBERi")
+        ) {
+          mimeType = "application/pdf";
+          if (!fileName.endsWith(".pdf")) fileName += ".pdf";
+        }
 
         const byteChars = atob(b64);
         const byteNums = new Array(byteChars.length);
