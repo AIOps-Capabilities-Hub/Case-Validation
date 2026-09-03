@@ -23,6 +23,12 @@ const isMockMode = [true, "true", "1", "yes"].includes(
 
 const encodeId = (value) => encodeURIComponent(value);
 
+const stripHtml = (html) => {
+  if (!html || typeof html !== "string") return html || "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
+};
+
 const apiResponse = async (response, message) => {
   const text = await response.text().catch(() => "");
   if (response.ok) {
@@ -542,11 +548,11 @@ function CaseList({ cases, onSelect, onBack }) {
                 onClick={() => onSelect(item)}
               >
                 <span className="case-row-main">
-                  <strong>{item.pxRefObjectInsName}</strong>
-                  <span>{item.pyLabel || "Beneficiary case"}</span>
+                  <strong>{stripHtml(item.pxRefObjectInsName)}</strong>
+                  <span>{stripHtml(item.pyLabel) || "Beneficiary case"}</span>
                 </span>
                 <span className="case-row-meta">
-                  <span>{item.pyAssignmentStatus || "Open"}</span>
+                  <span>{stripHtml(item.pyAssignmentStatus) || "Open"}</span>
                   <span>Open →</span>
                 </span>
               </button>
@@ -1112,7 +1118,12 @@ export default function App() {
             metaResult?.view?.groups?.[1]?.layout?.header?.groups || [];
           if (Array.isArray(headerGroups) && headerGroups.length > 0) {
             tableHeaders = headerGroups
-              .map((g) => g?.caption?.value || "")
+              .map((g) => {
+                const val = g?.caption?.value || "";
+                return val === "RequirementAttachmentKeyValue"
+                  ? "Attachment"
+                  : val;
+              })
               .filter(Boolean);
           }
 
@@ -1210,32 +1221,37 @@ export default function App() {
                   )) ||
                 (Array.isArray(rawList) ? rawList[index] : {});
 
-              const detail =
+              const detail = stripHtml(
                 findFieldValue("RequirementDetail") ||
-                rawMatch?.RequirementDetail ||
-                rawMatch?.pyRequirementDetail ||
-                "";
-              const correction =
+                  rawMatch?.RequirementDetail ||
+                  rawMatch?.pyRequirementDetail ||
+                  "",
+              );
+              const correction = stripHtml(
                 findFieldValue("NIGOCorrectionDetails") ||
-                rawMatch?.NIGOCorrectionDetails ||
-                rawMatch?.pyCorrectionDetails ||
-                "";
-              const documentStatus =
+                  rawMatch?.NIGOCorrectionDetails ||
+                  rawMatch?.pyCorrectionDetails ||
+                  "",
+              );
+              const documentStatus = stripHtml(
                 findFieldValue("DocumentStatus") ||
-                rawMatch?.DocumentStatus ||
-                rawMatch?.pyDocumentStatus ||
-                "";
-              const workbenchStatus =
+                  rawMatch?.DocumentStatus ||
+                  rawMatch?.pyDocumentStatus ||
+                  "",
+              );
+              const workbenchStatus = stripHtml(
                 findFieldValue("WorkBenchStatus") ||
-                rawMatch?.WorkBenchStatus ||
-                rawMatch?.pyWorkbenchStatus ||
-                "";
-              const beneficiaryComments =
+                  rawMatch?.WorkBenchStatus ||
+                  rawMatch?.pyWorkbenchStatus ||
+                  "",
+              );
+              const beneficiaryComments = stripHtml(
                 findFieldValue("BeneficiaryComments") ||
-                rawMatch?.BeneficiaryComments ||
-                rawMatch?.beneficiaryComments ||
-                rawMatch?.pyBeneficiaryComments ||
-                "";
+                  rawMatch?.BeneficiaryComments ||
+                  rawMatch?.beneficiaryComments ||
+                  rawMatch?.pyBeneficiaryComments ||
+                  "",
+              );
               const attachmentKeyValue =
                 findFieldValue("RequirementAttachmentKeyValue") ||
                 rawMatch?.RequirementAttachmentKeyValue ||
@@ -1244,7 +1260,7 @@ export default function App() {
                 "";
 
               return {
-                name,
+                name: stripHtml(name),
                 detail,
                 correction,
                 documentStatus,
@@ -1256,44 +1272,50 @@ export default function App() {
           } else {
             if (Array.isArray(rawList) && rawList.length > 0) {
               requirements = rawList.map((r) => ({
-                name:
+                name: stripHtml(
                   r.pyRequirementName ||
-                  r.RequirementName ||
-                  r.Requirement ||
-                  r.pyLabel ||
-                  r.name ||
-                  "",
-                detail:
+                    r.RequirementName ||
+                    r.Requirement ||
+                    r.pyLabel ||
+                    r.name ||
+                    "",
+                ),
+                detail: stripHtml(
                   r.pyRequirementDetail ||
-                  r.RequirementDetail ||
-                  r.RequirementDescription ||
-                  r.detail ||
-                  r.Description ||
-                  "",
-                correction:
+                    r.RequirementDetail ||
+                    r.RequirementDescription ||
+                    r.detail ||
+                    r.Description ||
+                    "",
+                ),
+                correction: stripHtml(
                   r.pyCorrectionDetails ||
-                  r.CorrectionDetails ||
-                  r.NIGOCorrectionDetails ||
-                  r.correction ||
-                  r.pyMessage ||
-                  "",
-                documentStatus:
+                    r.CorrectionDetails ||
+                    r.NIGOCorrectionDetails ||
+                    r.correction ||
+                    r.pyMessage ||
+                    "",
+                ),
+                documentStatus: stripHtml(
                   r.pyDocumentStatus ||
-                  r.DocumentStatus ||
-                  r.documentStatus ||
-                  r.pyStatus ||
-                  "",
-                workbenchStatus:
+                    r.DocumentStatus ||
+                    r.documentStatus ||
+                    r.pyStatus ||
+                    "",
+                ),
+                workbenchStatus: stripHtml(
                   r.pyWorkbenchStatus ||
-                  r.WorkbenchStatus ||
-                  r.workbenchStatus ||
-                  r.pyStatusWork ||
-                  "",
-                beneficiaryComments:
+                    r.WorkbenchStatus ||
+                    r.workbenchStatus ||
+                    r.pyStatusWork ||
+                    "",
+                ),
+                beneficiaryComments: stripHtml(
                   r.BeneficiaryComments ||
-                  r.beneficiaryComments ||
-                  r.pyBeneficiaryComments ||
-                  "",
+                    r.beneficiaryComments ||
+                    r.pyBeneficiaryComments ||
+                    "",
+                ),
                 attachmentKeyValue:
                   r.RequirementAttachmentKeyValue ||
                   r.requirementAttachmentKeyValue ||
