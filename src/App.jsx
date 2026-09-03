@@ -566,6 +566,7 @@ function RequirementRow({
   attachments = [],
   onUpload,
   uploading,
+  onDownload,
 }) {
   const fileInputRef = useRef(null);
 
@@ -576,6 +577,19 @@ function RequirementRow({
       await onUpload(item.name, file);
     }
   };
+
+  const effectiveAttachments =
+    attachments && attachments.length > 0
+      ? attachments
+      : item.attachmentKeyValue
+        ? [
+            {
+              ID: item.attachmentKeyValue,
+              name: "Attachment",
+              attachmentKeyValue: item.attachmentKeyValue,
+            },
+          ]
+        : [];
 
   return (
     <div className="requirement-row">
@@ -651,7 +665,7 @@ function RequirementRow({
             </svg>
           )}
         </button>
-        {attachments.length > 0 && (
+        {effectiveAttachments.length > 0 && (
           <div
             className="row-attachment-list"
             style={{
@@ -664,13 +678,48 @@ function RequirementRow({
               width: "100%",
             }}
           >
-            {attachments.map((att) => {
+            {effectiveAttachments.map((att) => {
               const isImage =
                 att.mimeType?.startsWith("image/") ||
                 /\.(png|jpe?g|gif|webp|svg)$/i.test(att.name);
               const isPdf =
-                att.mimeType === "application/pdf" ||
-                /\.pdf$/i.test(att.name);
+                att.mimeType === "application/pdf" || /\.pdf$/i.test(att.name);
+
+              const renderDownloadButton = () => (
+                <button
+                  type="button"
+                  className="icon-download-button"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    padding: "2px 4px",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--blue)",
+                    marginLeft: "4px",
+                  }}
+                  onClick={() => onDownload && onDownload(att)}
+                  title="Download document"
+                  aria-label="Download document"
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
+              );
 
               if (att.base64 && isImage) {
                 const src = `data:${att.mimeType || "image/png"};base64,${att.base64}`;
@@ -690,7 +739,16 @@ function RequirementRow({
                         margin: "0 auto 2px",
                       }}
                     />
-                    <span style={{ wordBreak: "break-all" }}>{att.name}</span>
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <span style={{ wordBreak: "break-all" }}>{att.name}</span>
+                      {renderDownloadButton()}
+                    </div>
                   </div>
                 );
               }
@@ -705,7 +763,15 @@ function RequirementRow({
                 });
                 const blobUrl = URL.createObjectURL(blob);
                 return (
-                  <div key={att.ID || att.name} style={{ textAlign: "center" }}>
+                  <div
+                    key={att.ID || att.name}
+                    style={{
+                      textAlign: "center",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <a
                       href={blobUrl}
                       target="_blank"
@@ -715,17 +781,25 @@ function RequirementRow({
                     >
                       📄 {att.name}
                     </a>
+                    {renderDownloadButton()}
                   </div>
                 );
               }
 
-              // Fallback: just show filename with paperclip icon
+              // Fallback: filename with paperclip icon + download button
               return (
                 <div
                   key={att.ID || att.name}
-                  style={{ wordBreak: "break-all", textAlign: "center" }}
+                  style={{
+                    wordBreak: "break-all",
+                    textAlign: "center",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  📎 {att.name}
+                  <span>📎 {att.name}</span>
+                  {renderDownloadButton()}
                 </div>
               );
             })}
@@ -746,10 +820,23 @@ function CaseDetail({
   rowUploading,
   rowAttachments,
   submitError,
+  onDownload,
 }) {
   const [comments, setComments] = useState({});
-  // const content = caseData?.content || {};
   const requirements = caseData?.requirements || [];
+
+  useEffect(() => {
+    if (requirements && requirements.length > 0) {
+      const initialComments = {};
+      requirements.forEach((req) => {
+        if (req.beneficiaryComments) {
+          initialComments[req.name] = req.beneficiaryComments;
+        }
+      });
+      setComments((prev) => ({ ...initialComments, ...prev }));
+    }
+  }, [requirements]);
+
   const tableHeaders = caseData?.tableHeaders?.length
     ? caseData.tableHeaders
     : [
@@ -838,13 +925,18 @@ function CaseDetail({
             <RequirementRow
               key={item.name}
               item={item}
-              comment={comments[item.name] || ""}
+              comment={
+                comments[item.name] !== undefined
+                  ? comments[item.name]
+                  : item.beneficiaryComments || ""
+              }
               onComment={(value) =>
                 setComments((current) => ({ ...current, [item.name]: value }))
               }
               attachments={rowAttachments[item.name] || []}
               onUpload={onUploadRowAttachment}
               uploading={rowUploading[item.name]}
+              onDownload={onDownload}
             />
           ))}
         </div>
@@ -1024,9 +1116,29 @@ export default function App() {
               .filter(Boolean);
           }
 
+          const actionContent =
+            metaResult?.data?.caseInfo?.content ||
+            metaResult?.caseInfo?.content ||
+            caseDetails?.content ||
+            caseDetails?.data?.caseInfo?.content ||
+            {};
+          const rawList =
+            actionContent.NIGORequirementList ||
+            actionContent.NIGORequirementLists ||
+            actionContent.RequirementLists ||
+            actionContent.RequirementList ||
+            actionContent.Requirements ||
+            actionContent.pyRequirementLists ||
+            actionContent.pyRequirements ||
+            caseDetails.content?.NIGORequirementList ||
+            caseDetails.content?.RequirementLists ||
+            caseDetails.content?.Requirements ||
+            caseDetails.requirements ||
+            [];
+
           const rows = metaResult?.view?.groups?.[1]?.layout?.rows || [];
           if (Array.isArray(rows) && rows.length > 0) {
-            requirements = rows.map((row) => {
+            requirements = rows.map((row, index) => {
               const cols = row.groups || [];
               let name = "";
               const col0 = cols[0];
@@ -1060,19 +1172,76 @@ export default function App() {
                 name = getLinkLabel(col0);
               }
 
-              const findFieldValue = (fieldId) => {
-                for (const col of cols) {
-                  if (col?.field?.fieldID === fieldId) {
-                    return col.field.value || "";
+              const findFieldValue = (fieldId, targetCols = cols) => {
+                if (!targetCols) return "";
+                if (Array.isArray(targetCols)) {
+                  for (const c of targetCols) {
+                    const res = findFieldValue(fieldId, c);
+                    if (res !== undefined && res !== "") return res;
                   }
+                  return "";
                 }
+                if (targetCols?.field?.fieldID === fieldId) {
+                  return targetCols.field.value || "";
+                }
+                if (
+                  targetCols?.field?.reference &&
+                  targetCols.field.reference.endsWith("." + fieldId)
+                ) {
+                  return targetCols.field.value || "";
+                }
+                if (targetCols?.groups)
+                  return findFieldValue(fieldId, targetCols.groups);
+                if (targetCols?.layout?.groups)
+                  return findFieldValue(fieldId, targetCols.layout.groups);
+                if (targetCols?.view?.groups)
+                  return findFieldValue(fieldId, targetCols.view.groups);
                 return "";
               };
 
-              const detail = findFieldValue("RequirementDetail");
-              const correction = findFieldValue("NIGOCorrectionDetails");
-              const documentStatus = findFieldValue("DocumentStatus");
-              const workbenchStatus = findFieldValue("WorkBenchStatus");
+              const rawMatch =
+                (Array.isArray(rawList) &&
+                  rawList.find(
+                    (r) =>
+                      r.pyRequirementName === name ||
+                      r.RequirementName === name ||
+                      r.Requirement === name ||
+                      r.name === name,
+                  )) ||
+                (Array.isArray(rawList) ? rawList[index] : {});
+
+              const detail =
+                findFieldValue("RequirementDetail") ||
+                rawMatch?.RequirementDetail ||
+                rawMatch?.pyRequirementDetail ||
+                "";
+              const correction =
+                findFieldValue("NIGOCorrectionDetails") ||
+                rawMatch?.NIGOCorrectionDetails ||
+                rawMatch?.pyCorrectionDetails ||
+                "";
+              const documentStatus =
+                findFieldValue("DocumentStatus") ||
+                rawMatch?.DocumentStatus ||
+                rawMatch?.pyDocumentStatus ||
+                "";
+              const workbenchStatus =
+                findFieldValue("WorkBenchStatus") ||
+                rawMatch?.WorkBenchStatus ||
+                rawMatch?.pyWorkbenchStatus ||
+                "";
+              const beneficiaryComments =
+                findFieldValue("BeneficiaryComments") ||
+                rawMatch?.BeneficiaryComments ||
+                rawMatch?.beneficiaryComments ||
+                rawMatch?.pyBeneficiaryComments ||
+                "";
+              const attachmentKeyValue =
+                findFieldValue("RequirementAttachmentKeyValue") ||
+                rawMatch?.RequirementAttachmentKeyValue ||
+                rawMatch?.requirementAttachmentKeyValue ||
+                rawMatch?.pyRequirementAttachmentKeyValue ||
+                "";
 
               return {
                 name,
@@ -1080,27 +1249,11 @@ export default function App() {
                 correction,
                 documentStatus,
                 workbenchStatus,
+                beneficiaryComments,
+                attachmentKeyValue,
               };
             });
           } else {
-            const actionContent =
-              metaResult?.data?.caseInfo?.content ||
-              metaResult?.caseInfo?.content ||
-              {};
-            const rawList =
-              actionContent.NIGORequirementList ||
-              actionContent.NIGORequirementLists ||
-              actionContent.RequirementLists ||
-              actionContent.RequirementList ||
-              actionContent.Requirements ||
-              actionContent.pyRequirementLists ||
-              actionContent.pyRequirements ||
-              caseDetails.content?.NIGORequirementList ||
-              caseDetails.content?.RequirementLists ||
-              caseDetails.content?.Requirements ||
-              caseDetails.requirements ||
-              [];
-
             if (Array.isArray(rawList) && rawList.length > 0) {
               requirements = rawList.map((r) => ({
                 name:
@@ -1135,6 +1288,16 @@ export default function App() {
                   r.WorkbenchStatus ||
                   r.workbenchStatus ||
                   r.pyStatusWork ||
+                  "",
+                beneficiaryComments:
+                  r.BeneficiaryComments ||
+                  r.beneficiaryComments ||
+                  r.pyBeneficiaryComments ||
+                  "",
+                attachmentKeyValue:
+                  r.RequirementAttachmentKeyValue ||
+                  r.requirementAttachmentKeyValue ||
+                  r.pyRequirementAttachmentKeyValue ||
                   "",
               }));
             }
@@ -1272,7 +1435,10 @@ export default function App() {
             }),
           },
         );
-        await apiResponse(attachResponse, "Case attachment association failed.");
+        await apiResponse(
+          attachResponse,
+          "Case attachment association failed.",
+        );
 
         // Step 3: Call D_GetAttachmentDetails data view to get pxLinkedRefTo
         const dataViewResponse = await fetch(
@@ -1308,7 +1474,8 @@ export default function App() {
           );
           if (contentResponse.ok) {
             const contentResult = await contentResponse.json();
-            base64Content = contentResult?.content ?? contentResult?.data ?? null;
+            base64Content =
+              contentResult?.content ?? contentResult?.data ?? null;
             mimeType = contentResult?.mimeType ?? contentResult?.type ?? null;
           }
         } catch (e) {
@@ -1337,6 +1504,83 @@ export default function App() {
       }
     },
     [caseData, token, notify],
+  );
+
+  const handleDownloadAttachment = useCallback(
+    async (att) => {
+      if (att.base64) {
+        try {
+          const byteChars = atob(att.base64);
+          const byteNums = new Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) {
+            byteNums[i] = byteChars.charCodeAt(i);
+          }
+          const blob = new Blob([new Uint8Array(byteNums)], {
+            type: att.mimeType || "application/octet-stream",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = att.name || "attachment";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          return;
+        } catch (e) {
+          console.warn(
+            "Base64 direct download failed, falling back to API:",
+            e,
+          );
+        }
+      }
+
+      const attId =
+        att.ID ||
+        att.id ||
+        att.attachmentKeyValue ||
+        att.RequirementAttachmentKeyValue;
+      if (!attId) {
+        notify("No attachment ID available for download", "error");
+        return;
+      }
+
+      try {
+        notify("Fetching attachment file…");
+        const res = await fetch(
+          `${NEW_ASSIGN_BASE}/attachments/${encodeId(attId)}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        if (!res.ok) throw new Error("Failed to fetch attachment file.");
+        const result = await res.json();
+        const b64 = result?.content || result?.data;
+        if (!b64) throw new Error("Attachment content is empty.");
+
+        const fileName =
+          result?.name || result?.fileName || att.name || "attachment";
+        const mimeType =
+          result?.mimeType || result?.type || "application/octet-stream";
+
+        const byteChars = atob(b64);
+        const byteNums = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+          byteNums[i] = byteChars.charCodeAt(i);
+        }
+        const blob = new Blob([new Uint8Array(byteNums)], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        notify("Download started");
+      } catch (caught) {
+        notify(caught.message || "Failed to download attachment", "error");
+      }
+    },
+    [token, notify],
   );
 
   // const uploadAttachment = useCallback(
@@ -1407,7 +1651,7 @@ export default function App() {
   //   [caseData, token, notify],
   // );
 
-        const save = useCallback(
+  const save = useCallback(
     async (comments = {}) => {
       if (!assignmentId) return;
       setSubmitting(true);
@@ -1430,7 +1674,9 @@ export default function App() {
                   return {
                     BeneficiaryComments: comments[req.name] || "",
                     RequirementAttachmentKeyValue:
-                      reqAtts.length > 0 && reqAtts[0]?.ID ? reqAtts[0].ID : null,
+                      reqAtts.length > 0 && reqAtts[0]?.ID
+                        ? reqAtts[0].ID
+                        : null,
                   };
                 }),
               },
@@ -1483,7 +1729,9 @@ export default function App() {
                   return {
                     BeneficiaryComments: comments[req.name] || "",
                     RequirementAttachmentKeyValue:
-                      reqAtts.length > 0 && reqAtts[0]?.ID ? reqAtts[0].ID : null,
+                      reqAtts.length > 0 && reqAtts[0]?.ID
+                        ? reqAtts[0].ID
+                        : null,
                   };
                 }),
               },
@@ -1528,7 +1776,16 @@ export default function App() {
         setSubmitting(false);
       }
     },
-    [assignmentId, token, ifMatch, caseData, rowAttachments, notify, selectedCaseItem, selectCase],
+    [
+      assignmentId,
+      token,
+      ifMatch,
+      caseData,
+      rowAttachments,
+      notify,
+      selectedCaseItem,
+      selectCase,
+    ],
   );
 
   const home = () => {
@@ -1581,6 +1838,7 @@ export default function App() {
           rowUploading={rowUploading}
           rowAttachments={rowAttachments}
           submitError={submitError}
+          onDownload={handleDownloadAttachment}
         />
       )}
       {step === "SUCCESS" && (
