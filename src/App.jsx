@@ -657,14 +657,78 @@ function RequirementRow({
             style={{
               fontSize: "11px",
               color: "var(--muted)",
-              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+              alignItems: "center",
+              width: "100%",
             }}
           >
-            {attachments.map((att) => (
-              <div key={att.id || att.name} style={{ wordBreak: "break-all" }}>
-                📎 {att.name}
-              </div>
-            ))}
+            {attachments.map((att) => {
+              const isImage =
+                att.mimeType?.startsWith("image/") ||
+                /\.(png|jpe?g|gif|webp|svg)$/i.test(att.name);
+              const isPdf =
+                att.mimeType === "application/pdf" ||
+                /\.pdf$/i.test(att.name);
+
+              if (att.base64 && isImage) {
+                const src = `data:${att.mimeType || "image/png"};base64,${att.base64}`;
+                return (
+                  <div key={att.ID || att.name} style={{ textAlign: "center" }}>
+                    <img
+                      src={src}
+                      alt={att.name}
+                      title={att.name}
+                      style={{
+                        maxWidth: "120px",
+                        maxHeight: "80px",
+                        borderRadius: "4px",
+                        border: "1px solid #e2e8f0",
+                        objectFit: "cover",
+                        display: "block",
+                        margin: "0 auto 2px",
+                      }}
+                    />
+                    <span style={{ wordBreak: "break-all" }}>{att.name}</span>
+                  </div>
+                );
+              }
+
+              if (att.base64 && isPdf) {
+                const byteChars = atob(att.base64);
+                const byteNums = new Array(byteChars.length);
+                for (let i = 0; i < byteChars.length; i++)
+                  byteNums[i] = byteChars.charCodeAt(i);
+                const blob = new Blob([new Uint8Array(byteNums)], {
+                  type: "application/pdf",
+                });
+                const blobUrl = URL.createObjectURL(blob);
+                return (
+                  <div key={att.ID || att.name} style={{ textAlign: "center" }}>
+                    <a
+                      href={blobUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "var(--blue)", wordBreak: "break-all" }}
+                      title="Open PDF"
+                    >
+                      📄 {att.name}
+                    </a>
+                  </div>
+                );
+              }
+
+              // Fallback: just show filename with paperclip icon
+              return (
+                <div
+                  key={att.ID || att.name}
+                  style={{ wordBreak: "break-all", textAlign: "center" }}
+                >
+                  📎 {att.name}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -1163,6 +1227,7 @@ export default function App() {
       if (!caseData?.ID) return;
       setRowUploading((prev) => ({ ...prev, [requirementName]: true }));
       try {
+        // Step 1: Upload the raw file to Pega
         const form = new FormData();
         form.append("file", file);
         form.append("contextId", caseData.ID);
@@ -1185,6 +1250,7 @@ export default function App() {
           throw new Error("No upload ID returned from server.");
         }
 
+        // Step 2: Link the uploaded file to the case
         const attachResponse = await fetch(
           `${NEW_ASSIGN_BASE}/cases/${encodeId(caseData.ID)}/attachments`,
           {
@@ -1196,7 +1262,7 @@ export default function App() {
             body: JSON.stringify({
               attachments: [
                 {
-                  attachmentFieldName: "ResponseAttachments",
+                  attachmentFieldName: "ClaimantResponseAttachments",
                   category: "File",
                   ID: uploadId,
                   type: "File",
@@ -1206,18 +1272,57 @@ export default function App() {
             }),
           },
         );
-        const attachResult = await apiResponse(
-          attachResponse,
-          "Case attachment association failed.",
+        await apiResponse(attachResponse, "Case attachment association failed.");
+
+        // Step 3: Call D_GetAttachmentDetails data view to get pxLinkedRefTo
+        const dataViewResponse = await fetch(
+          `${API_BASE}/data_views/D_GetAttachmentDetails`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              dataViewParameters: {
+                LinkRefFrom: caseData.ID,
+                Memo: file.name,
+              },
+            }),
+          },
         );
-        const finalId = attachResult?.ID || attachResult?.id || uploadId;
+        const dataViewResult = await apiResponse(
+          dataViewResponse,
+          "Failed to fetch attachment details.",
+        );
+        const linkedRefTo =
+          dataViewResult?.data?.[0]?.pxLinkedRefTo || uploadId;
+
+        // Step 4: Fetch the base64 content of the attachment
+        let base64Content = null;
+        let mimeType = null;
+        try {
+          const contentResponse = await fetch(
+            `${NEW_ASSIGN_BASE}/attachments/${encodeId(linkedRefTo)}`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          if (contentResponse.ok) {
+            const contentResult = await contentResponse.json();
+            base64Content = contentResult?.content ?? contentResult?.data ?? null;
+            mimeType = contentResult?.mimeType ?? contentResult?.type ?? null;
+          }
+        } catch (e) {
+          console.warn("Could not fetch attachment content for preview:", e);
+        }
 
         const attachmentObj = {
-          attachmentFieldName: "ResponseAttachments",
+          attachmentFieldName: "ClaimantResponseAttachments",
           category: "File",
-          ID: finalId,
+          ID: linkedRefTo,
           type: "File",
           name: file.name,
+          base64: base64Content,
+          mimeType,
         };
 
         setRowAttachments((prev) => ({
@@ -1360,6 +1465,13 @@ export default function App() {
         if (ifMatch) headers["If-Match"] = ifMatch;
 
         const reqs = caseData?.requirements || [];
+
+        // Collect all uploaded attachments across rows for the submit payload.
+        // Strip internal-only preview fields (base64, mimeType) before sending.
+        const allAttachments = Object.values(rowAttachments)
+          .flat()
+          .map(({ base64: _b, mimeType: _m, ...rest }) => rest);
+
         const response = await fetch(
           `${NEW_ASSIGN_BASE}/assignments/${encodeId(assignmentId)}?actionID=AwaitingFulfillment`,
           {
@@ -1370,6 +1482,9 @@ export default function App() {
                 NIGORequirementList: reqs.map((req) => ({
                   BeneficiaryComments: comments[req.name] || "",
                 })),
+                ...(allAttachments.length > 0 && {
+                  ClaimantResponseAttachments: allAttachments,
+                }),
               },
             }),
             signal: controller.signal,
